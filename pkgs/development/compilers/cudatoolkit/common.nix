@@ -167,9 +167,8 @@ stdenv.mkDerivation rec {
     wrapProgram $out/bin/nvcc \
       --prefix PATH : ${gcc}/bin
 
-    # nvprof do not find any program to profile if LD_LIBRARY_PATH is not set
-    wrapProgram $out/bin/nvprof \
-      --prefix LD_LIBRARY_PATH : $out/lib
+    # nvprof do not find any program to profile if rpath is not set
+    patchelf --set-rpath "$out/lib" "$out/bin/nvprof"
   '' + lib.optionalString (lib.versionOlder version "8.0") ''
     # Hack to fix building against recent Glibc/GCC.
     echo "NIX_CFLAGS_COMPILE+=' -D_FORCE_INLINES'" >> $out/nix-support/setup-hook
@@ -206,8 +205,10 @@ stdenv.mkDerivation rec {
   # addOpenGLRunpath.  Don't try to figure out which libraries really need
   # it, just patch all (but not the stubs libraries). Note that
   # --force-rpath prevents changing RPATH (set above) to RUNPATH.
+  # Also add for bins like nvprof which need this at runtime
   postFixup = ''
     addOpenGLRunpath --force-rpath {$out,$lib}/lib/lib*.so
+    addOpenGLRunpath $out/bin/*
   '';
 
   # cuda-gdb doesn't run correctly when not using sandboxing, so
