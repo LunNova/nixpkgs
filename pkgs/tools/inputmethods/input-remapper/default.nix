@@ -29,28 +29,32 @@
   # failures when building. Override this to true to run tests anyway
   # See upstream issue: https://github.com/sezanzeb/input-remapper/issues/306
 , withDoCheck ? false
-  # Version and rev and hash are package arguments to allow overriding
-  # while ensuring the values in prePatch and src match
-  # https://discourse.nixos.org/t/avoid-rec-expresions-in-nixpkgs/8293/7
-  # The names are prefixed with input_remapper to avoid potential
-  # collisions with package names
-, input_remapper_version ? "1.4.2"
-, input_remapper_src_rev ? "af20f87a1298153e765b840a2164ba63b9ef937a"
-, input_remapper_src_hash ? "sha256-eG4Fx1z74Bq1HrfmzOuULQLziGdWnHLax8y2dymjWsI="
 }:
 
 let
   maybeXmodmap = lib.optional withXmodmap xmodmap;
+  version = "1.4.2";
 in
 buildPythonApplication {
   pname = "input-remapper";
-  version = input_remapper_version;
+  inherit version;
 
   src = fetchFromGitHub {
-    rev = input_remapper_src_rev;
+    rev = "${version}";
     owner = "sezanzeb";
     repo = "input-remapper";
-    hash = input_remapper_src_hash;
+    hash = "sha256-dA0U7LHh8O//7MU6Za0SLOA5rkwQQ3Q/eP2lS1VBvGs=";
+    leaveDotGit = true;
+    postFetch = ''
+      cd $out
+
+      # set revision for --version output
+      echo "COMMIT_HASH = '$(git rev-parse --verify HEAD)'" > inputremapper/commit_hash.py
+      touch -d @0 inputremapper/commit_hash.py
+
+      # remove .git to workaround https://github.com/NixOS/nixpkgs/issues/8567
+      rm -rf .git
+    '';
   };
 
   # Fixes error
@@ -59,9 +63,6 @@ buildPythonApplication {
   strictDeps = false;
 
   prePatch = ''
-    # set revision for --version output
-    echo "COMMIT_HASH = '${input_remapper_src_rev}'" > inputremapper/commit_hash.py
-
     # fix FHS paths
     substituteInPlace inputremapper/configs/data.py \
       --replace "/usr/share/input-remapper"  "$out/usr/share/input-remapper"
