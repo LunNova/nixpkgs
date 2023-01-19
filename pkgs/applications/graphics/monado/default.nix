@@ -28,6 +28,7 @@
 , libuvc
 , libv4l
 , libxcb
+, onnxruntime
 , opencv4
 , openhmd
 , udev
@@ -38,6 +39,7 @@
 , wayland-scanner
 , libdrm
 , zlib
+, monado-basalt
 # Set as 'false' to build monado without service support, i.e. allow VR
 # applications linking against libopenxr_monado.so to use OpenXR standalone
 # instead of via the monado-service program. For more information see:
@@ -67,6 +69,10 @@ stdenv.mkDerivation rec {
 
   cmakeFlags = [
     "-DXRT_FEATURE_SERVICE=${if serviceSupport then "ON" else "OFF"}"
+    "-DXRT_FEATURE_SLAM=ON"
+    "-DXRT_FEATURE_WINDOW_PEEK=ON"
+    "-DXRT_BUILD_DRIVER_HANDTRACKING=ON"
+    "-DXRT_BUILD_DRIVER_WMR=ON"
     "-DXRT_OPENXR_INSTALL_ABSOLUTE_RUNTIME_PATH=ON"
   ];
 
@@ -92,6 +98,8 @@ stdenv.mkDerivation rec {
     libuvc
     libv4l
     libxcb
+    monado-basalt
+    onnxruntime
     opencv4
     openhmd
     udev
@@ -117,6 +125,11 @@ stdenv.mkDerivation rec {
   # Help openxr-loader find this runtime
   setupHook = writeText "setup-hook" ''
     export XDG_CONFIG_DIRS=@out@/etc/xdg''${XDG_CONFIG_DIRS:+:''${XDG_CONFIG_DIRS}}
+  '';
+
+  postInstall = ''
+    cp ../scripts/get-ht-models.sh $out/bin/monado-get-ht-models
+    cp ../scripts/update-ht-models.sh $out/bin/monado-update-ht-models
   '';
 
   meta = with lib; {

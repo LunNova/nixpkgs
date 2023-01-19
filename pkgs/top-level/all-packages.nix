@@ -5090,6 +5090,8 @@ with pkgs;
     inherit (gst_all_1) gstreamer gst-plugins-base;
   };
 
+  monado-basalt = callPackage ../applications/graphics/monado/basalt.nix { };
+
   mons = callPackage ../tools/misc/mons {};
 
   monsoon = callPackage ../tools/security/monsoon {};
