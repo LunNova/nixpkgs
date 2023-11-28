@@ -32,6 +32,7 @@ stdenv.mkDerivation (finalAttrs: {
     "--with-manpage-format=normal"
     "--disable-stripping"
     "--with-versioned-syms"
+    "--with-termlib=tinfo"
   ] ++ lib.optional unicodeSupport "--enable-widec"
     ++ lib.optional (!withCxx) "--without-cxx"
     ++ lib.optional (abiVersion == "5") "--with-abi-version=5"
@@ -118,7 +119,7 @@ stdenv.mkDerivation (finalAttrs: {
           if [ -e "$out/lib/lib''${library}$suffix.$dylibtype" ]; then
             ln -svf lib''${library}$suffix.$dylibtype $out/lib/lib$library$newsuffix.$dylibtype
             ln -svf lib''${library}$suffix.${abiVersion-extension} $out/lib/lib$library$newsuffix.${abiVersion-extension}
-            if [ "ncurses" = "$library" ]
+            if [ "ncurses" = "$library" ] && [ "so" != "$dylibtype" ]
             then
               # make libtinfo symlinks
               ln -svf lib''${library}$suffix.$dylibtype $out/lib/libtinfo$newsuffix.$dylibtype
@@ -136,6 +137,12 @@ stdenv.mkDerivation (finalAttrs: {
             fi
           fi
         done
+        # make libtinfo linker scripts specifically for .so files
+        # Previously this was a symlink, copying other distros by using a linker script
+        # See https://github.com/NixOS/nixpkgs/issues/89769 for context
+        dylibtype=so
+        echo "INPUT(lib''${library}$suffix.$dylibtype -ltinfo)" > $out/lib/libtinfo$newsuffix.$dylibtype
+        echo "INPUT(lib''${library}$suffix.${abiVersion-extension} -ltinfo)" > $out/lib/libtinfo$newsuffix.${abiVersion-extension}
         ln -svf ''${library}$suffix.pc $dev/lib/pkgconfig/$library$newsuffix.pc
       done
     done
