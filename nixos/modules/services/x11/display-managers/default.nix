@@ -17,6 +17,7 @@ let
   opt = options.services.xserver;
   xorg = pkgs.xorg;
 
+  nixos-fake-graphical-session = "nixos-fake-graphical-session";
   fontconfig = config.fonts.fontconfig;
   xresourcesXft = pkgs.writeText "Xresources-Xft" ''
     Xft.antialias: ${if fontconfig.antialias then "1" else "0"}
@@ -35,7 +36,12 @@ let
   # xdg-autostart-generator work on sessions that are wrong, but this broke sessions
   # that do things right. So, preserve this behavior (with some extra steps) by matching
   # on XDG_CURRENT_DESKTOP and deliberately ignoring sessions we know can do the right thing.
-  fakeSession = action: ''
+  # Start of the fake session is delayed with a systemd timer.
+  # This is a bodge because we can't properly tell if the session has started for environments which
+  # don't start graphical-session.target themselves.
+  # Where possible timing shouldn't be used to ensure ordering, so if a WM supports something like sd-notify
+  # or another mechanism to start the session once it's ready that should be used instead.
+  startFakeSession = ''
       session_is_systemd_aware=$(
         IFS=:
         for i in $XDG_CURRENT_DESKTOP; do
@@ -47,8 +53,13 @@ let
       )
 
       if [ -z "$session_is_systemd_aware" ]; then
-        /run/current-system/systemd/bin/systemctl --user ${action} nixos-fake-graphical-session.target
+        /run/current-system/systemd/bin/systemctl --user start "${nixos-fake-graphical-session}.timer"
       fi
+  '';
+
+  stopFakeSession = ''
+    /run/current-system/systemd/bin/systemctl --user stop \
+      "${nixos-fake-graphical-session}.timer" "${nixos-fake-graphical-session}.target"
   '';
 
   # file provided by services.xserver.displayManager.sessionData.wrapper
@@ -114,7 +125,7 @@ let
 
       ${cfg.displayManager.sessionCommands}
 
-      ${fakeSession "start"}
+      ${startFakeSession}
 
       # Allow the user to setup a custom session type.
       if test -x ~/.xsession; then
@@ -440,10 +451,18 @@ in
       "XDG_SESSION_ID"
     ];
 
-    systemd.user.targets.nixos-fake-graphical-session = {
+    systemd.user.targets.${nixos-fake-graphical-session} = {
       unitConfig = {
         Description = "Fake graphical-session target for non-systemd-aware sessions";
         BindsTo = "graphical-session.target";
+      };
+    };
+
+    systemd.user.timers.${nixos-fake-graphical-session} = {
+      timerConfig               = {
+        Unit = "${nixos-fake-graphical-session}.target";
+        OnActiveSec = "2s";
+        AccuracySec = "1s";
       };
     };
 
@@ -474,7 +493,7 @@ in
 
           test -n "$waitPID" && wait "$waitPID"
 
-          ${fakeSession "stop"}
+          ${stopFakeSession}
 
           exit 0
         '';
