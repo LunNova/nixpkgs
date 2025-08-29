@@ -41,6 +41,7 @@
 
   # Build inputs
   apple-sdk_13,
+  openssl,
   numactl,
   llvmPackages,
 
@@ -310,6 +311,12 @@ buildPythonPackage rec {
   postPatch = ''
     substituteInPlace pyproject.toml \
       --replace-fail "setuptools>=62.3.0,<80.0" "setuptools"
+  ''
+  # Provide path to openssl binary for inductor code cache hash
+  # InductorError: FileNotFoundError: [Errno 2] No such file or directory: 'openssl'
+  + ''
+    substituteInPlace torch/_inductor/codecache.py \
+      --replace-fail '"openssl"' '"${lib.getExe openssl}"'
   ''
   # Do not override PYTHONPATH, otherwise, the build fails with:
   # ModuleNotFoundError: No module named 'typing_extensions'
