@@ -1,7 +1,6 @@
 {
   lib,
   fetchurl,
-  callPackage,
   bash,
   tinycc-bootstrappable,
   musl,
@@ -12,12 +11,12 @@
 let
   pname = "tinycc-musl";
   # next commit introduces use of realpath (unsupported in mes-libc)
-  version = "unstable-2023-07-10";
-  rev = "fd6d2180c5c801bb0b4c5dde27d61503059fc97d";
+  version = "unstable-2025-05-24";
+  rev = "83de532563c6d922c6262dea757a22cb90d06101";
 
   src = fetchurl {
     url = "https://repo.or.cz/tinycc.git/snapshot/${rev}.tar.gz";
-    hash = "sha256-R81SNbEmh4s9FNQxCWZwUiMCYRkkwOHAdRf0aMnnRiA=";
+    hash = "sha256-YkgDBiz25y+IpDegVdDmQ0ATXPXj3IVCccmAIsL+u2Q=";
   };
 
   patches = [
