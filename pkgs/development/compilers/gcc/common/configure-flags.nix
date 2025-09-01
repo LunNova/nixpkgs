@@ -20,6 +20,7 @@
   enablePlugin,
   disableGdbPlugin ? !enablePlugin,
   enableShared,
+  enableDefaultPie,
   targetPrefix,
 
   langC,
@@ -279,6 +280,12 @@ let
       "libat_cv_have_ifunc=no"
       "--disable-gnu-indirect-function"
     ]
+    ++ lib.optionals enableDefaultPie [
+      "--enable-default-pie"
+    ]
+    # FIXME: reportedly this introduces a performance penalty
+    # Some distros use enable-host-shared for a minimal subset
+    # of targets instead of the overall configure
     ++ lib.optionals langJit [
       "--enable-host-shared"
     ]
