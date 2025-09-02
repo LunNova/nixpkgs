@@ -15,8 +15,8 @@ let
   rev = "83de532563c6d922c6262dea757a22cb90d06101";
 
   src = fetchurl {
-    url = "https://repo.or.cz/tinycc.git/snapshot/${rev}.tar.gz";
-    hash = "sha256-YkgDBiz25y+IpDegVdDmQ0ATXPXj3IVCccmAIsL+u2Q=";
+    url = "https://web.archive.org/web/20250902001533/https://repo.or.cz/tinycc.git/snapshot/${rev}.tar.gz";
+    hash = "sha256-R81SNbEmh4s9FNQxCWZwUiMCYRkkwOHAdRf0aMnnRiA=";
   };
 
   patches = [
