@@ -19,11 +19,11 @@
 let
   # Based on https://github.com/ZilchOS/bootstrap-from-tcc/blob/2e0c68c36b3437386f786d619bc9a16177f2e149/using-nix/2a1-static-binutils.nix
   pname = "binutils";
-  version = "2.41";
+  version = "2.45";
 
   src = fetchurl {
     url = "mirror://gnu/binutils/binutils-${version}.tar.xz";
-    hash = "sha256-rppXieI0WeWWBuZxRyPy0//DHAMXQZHvDQFb3wYAdFA=";
+    hash = "sha256-xQwOf5yxiJgOLMl+RTdiaxZyRBgVWH8eq2nSob++9dI=";
   };
 
   patches = [
