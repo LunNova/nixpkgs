@@ -64,6 +64,7 @@ stdenv.mkDerivation (finalAttrs: {
     })
     ./remove-tools-1.11.patch
     ./go_no_vendor_checks-1.23.patch
+    ./go-env-go_ldso.patch
   ];
 
   inherit (stdenv.targetPlatform.go) GOOS GOARCH GOARM;
@@ -87,6 +88,9 @@ stdenv.mkDerivation (finalAttrs: {
   buildPhase = ''
     runHook preBuild
     export GOCACHE=$TMPDIR/go-cache
+    if [ -f "$NIX_CC/nix-support/dynamic-linker" ]; then
+      export GO_LDSO=$(cat $NIX_CC/nix-support/dynamic-linker)
+    fi
 
     export PATH=$(pwd)/bin:$PATH
 
