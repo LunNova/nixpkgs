@@ -99,6 +99,11 @@ stdenv.mkDerivation (finalAttrs: {
       # Independent from host/target, CC should produce code for the building system.
       # We only set it when cross-compiling.
       export CC=${buildPackages.stdenv.cc}/bin/cc
+      # teaching go's internal linker to pick the right ELF interpreter is hard for cross
+      # Prefer external linker to work around this
+      # This flag is baked into go as a default and not just for bootstrap
+      export GO_EXTLINK_ENABLED=1
+      export GO_LDSO=
     ''}
     ulimit -a
 

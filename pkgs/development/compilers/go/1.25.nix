@@ -109,6 +109,10 @@ stdenv.mkDerivation (finalAttrs: {
       # Independent from host/target, CC should produce code for the building system.
       # We only set it when cross-compiling.
       export CC=${buildPackages.stdenv.cc}/bin/cc
+      # Prefer external linker for cross, teaching go's internal linker to do cross right is hard
+      # This flag is baked into the compiler and not just for bootstrap
+      export GO_EXTLINK_ENABLED=1
+      export GO_LDSO=
     ''}
     ulimit -a
 
@@ -171,10 +175,12 @@ stdenv.mkDerivation (finalAttrs: {
       # Running and outputting the right version proves a working ELF interpreter was picked
       clickhouse-backup = testers.testVersion { package = clickhouse-backupTest; };
       clickhouse-backup-is-pie = runCommand "has-pie" { meta.broken = stdenv.hostPlatform.isStatic; } ''
-        if ${lib.getExe' bintools "readelf"} -p .comment ${lib.getExe clickhouse-backup} | grep -Fq "GCC: (GNU)"; then
-          echo "${lib.getExe clickhouse-backup} has a GCC .comment, but it should have used the internal go linker"
-          exit 1
-        fi
+        ${lib.optionalString (!isCross) ''
+          if ${lib.getExe' bintools "readelf"} -p .comment ${lib.getExe clickhouse-backup} | grep -Fq "GCC: (GNU)"; then
+            echo "${lib.getExe clickhouse-backup} has a GCC .comment, but it should have used the internal go linker"
+            exit 1
+          fi
+        ''}
         if ${lib.getExe' bintools "readelf"} -h ${lib.getExe clickhouse-backup} | grep -q "Type:.*DYN"; then
           echo "PIE found" > $out
         else
