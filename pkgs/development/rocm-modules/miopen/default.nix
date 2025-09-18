@@ -37,12 +37,14 @@
   gpuTargets ? clr.localGpuTargets or clr.gpuTargets,
   buildDocs ? false, # Needs internet because of rocm-docs-core
   buildTests ? false,
-  withComposableKernel ? composable_kernel.anyMfmaTarget,
+  withComposableKernel ? true,
 }:
 
 let
   # FIXME: cmake files need patched to include this properly
   cFlags = "-Wno-documentation-pedantic --offload-compress -I${hipblas-common}/include -I${hipblas}/include -I${roctracer}/include -I${nlohmann_json}/include -I${sqlite.dev}/include -I${rocrand}/include";
+  # FIXME: 7.0.1 tag is messed up and contains hipblas-common.
+  # Update this if AMD correct the tag. https://github.com/ROCm/ROCm/issues/5374
   version = "7.0.0";
 
   # Targets outside this list will get

@@ -194,7 +194,7 @@ let
   );
 
   # Use vendored CK as header only dep if rocmPackages' CK doesn't properly support targets
-  vendorComposableKernel = rocmSupport && !rocmPackages.composable_kernel.anyMfmaTarget;
+  vendorComposableKernel = false;
 
   rocmtoolkit_joined = symlinkJoin {
     name = "rocm-merged";

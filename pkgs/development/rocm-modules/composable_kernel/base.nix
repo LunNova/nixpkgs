@@ -15,6 +15,11 @@
   zstd,
   buildTests ? false,
   buildExamples ? false,
+  # limits prebuilt kernel selection to those needed for MIOPEN (currently "*conv*")
+  # Other kernels can still be used if treating CK as a header only library
+  # and building specific instances, as done with ck4inductor/torch
+  miOpenReqLibsOnly ? true,
+  withDeprecatedKernels ? false,
   gpuTargets ? (
     clr.localGpuTargets or [
       "gfx900"
@@ -22,20 +27,14 @@
       "gfx908"
       "gfx90a"
       "gfx942"
-      "gfx1030"
-      "gfx1100"
-      "gfx1101"
-      "gfx1102"
-      "gfx1200"
-      "gfx1201"
+      "gfx950"
+      "gfx10-3-generic"
+      "gfx11-generic"
+      "gfx12-generic"
     ]
   ),
 }:
 
-# TODO: in 7.x CK is likely to gain support for
-# a) miopen kernel only build (MIOPEN_REQ_LIBS_ONLY)
-# b) header only build (useful for torch) https://github.com/ROCm/composable_kernel/issues/2030
-# that will likely allow us to get rid of this complicated split part build!
 stdenv.mkDerivation (finalAttrs: {
   preBuild = ''
     echo "This derivation isn't intended to be built directly and only exists to be overridden and built in chunks";
@@ -87,10 +86,14 @@ stdenv.mkDerivation (finalAttrs: {
   env.HIP_CLANG_PATH = "${rocm-merged-llvm}/bin";
 
   cmakeFlags = [
+    (lib.cmakeBool "MIOPEN_REQ_LIBS_ONLY" miOpenReqLibsOnly)
+    (lib.cmakeBool "BUILD_MHA_LIB" (!miOpenReqLibsOnly))
+    (lib.cmakeBool "DISABLE_DL_KERNELS" true)
+    (lib.cmakeBool "DISABLE_DPP_KERNELS" true)
+    (lib.cmakeBool "CK_TIME_KERNEL" false)
     "-DCMAKE_MODULE_PATH=${clr}/hip/cmake"
-    "-DCMAKE_BUILD_TYPE=Release"
     "-DCMAKE_POLICY_DEFAULT_CMP0069=NEW"
-    # "-DDL_KERNELS=ON" # Not needed, slow to build
+    "-DDL_KERNELS=OFF"
     # CK_USE_CODEGEN Required for migraphx which uses device_gemm_multiple_d.hpp
     # but migraphx requires an incompatible fork of CK and fails anyway
     # "-DCK_USE_CODEGEN=ON"
@@ -135,6 +138,10 @@ stdenv.mkDerivation (finalAttrs: {
       substituteInPlace cmake/EnableCompilerWarnings.cmake \
         --replace-fail "-Werror" ""
     ''
+    + lib.optionalString (!withDeprecatedKernels) ''
+      substituteInPlace include/ck/ck.hpp \
+        --replace-fail "CK_BUILD_DEPRECATED 1" "CK_BUILD_DEPRECATED 0"
+    ''
     # Optionally remove tests
     + lib.optionalString (!buildTests) ''
       substituteInPlace CMakeLists.txt \
@@ -159,7 +166,7 @@ stdenv.mkDerivation (finalAttrs: {
     '';
 
   passthru = {
-    inherit gpuTargets;
+    inherit gpuTargets miOpenReqLibsOnly;
     updateScript = rocmUpdateScript {
       name = finalAttrs.pname;
       inherit (finalAttrs.src) owner;

@@ -2714,7 +2714,7 @@ with pkgs;
   kramdown-asciidoc = callPackage ../tools/typesetting/kramdown-asciidoc { };
 
   rocmPackages = rocmPackages_7;
-  rocmPackages_7 = recurseIntoAttrs (callPackage ../development/rocm-modules/7 { });
+  rocmPackages_7 = recurseIntoAttrs (callPackage ../development/rocm-modules { });
 
   tsm-client-withGui = callPackage ../by-name/ts/tsm-client/package.nix { enableGui = true; };
 

@@ -340,7 +340,7 @@ rec {
             })
             # FIXME: Needed due to https://github.com/NixOS/nixpkgs/issues/375431
             # Once we can switch to overrideScope this can be removed
-            (replaceVars ./../../../compilers/llvm/common/clang/clang-at-least-16-LLVMgold-path.patch {
+            (replaceVars ./../../compilers/llvm/common/clang/clang-at-least-16-LLVMgold-path.patch {
               libllvmLibdir = "${llvm.lib}/lib";
             })
           ];

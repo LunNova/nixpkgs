@@ -5,8 +5,10 @@
 }:
 
 let
+  inherit (composable_kernel_base) miOpenReqLibsOnly;
   parts = {
     _mha = {
+      enabled = !miOpenReqLibsOnly;
       # mha takes ~3hrs on 64 cores on an EPYC milan system at ~2.5GHz
       # big-parallel builders are one gen newer and clocked ~30% higher but only 24 cores
       # Should be <10h timeout but might be cutting it close
@@ -20,6 +22,7 @@ let
       extraCmakeFlags = [ "-DHIP_CLANG_NUM_PARALLEL_JOBS=2" ];
     };
     gemm_multiply_multiply = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_gemm_multiply_multiply_instance"
       ];
@@ -30,6 +33,7 @@ let
       ];
     };
     gemm_multiply_multiply_wp = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_gemm_multiply_multiply_wp_instance"
       ];
@@ -50,7 +54,7 @@ let
       targets = [
         "device_grouped_conv1d_fwd_instance"
         "device_grouped_conv2d_fwd_instance"
-        "device_grouped_conv2d_fwd_bias_relu_instance"
+        # "device_grouped_conv2d_fwd_bias_relu_instance"
         "device_grouped_conv2d_fwd_dynamic_op_instance"
       ];
     };
@@ -88,6 +92,7 @@ let
       ];
     };
     batched_gemm1 = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_batched_gemm_instance"
         "device_batched_gemm_b_scale_instance"
@@ -100,6 +105,7 @@ let
       ];
     };
     batched_gemm2 = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_batched_gemm_softmax_gemm_permute_instance"
         "device_grouped_gemm_instance"
@@ -111,18 +117,21 @@ let
       ];
     };
     gemm_universal1 = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_gemm_universal_instance"
         "device_gemm_universal_batched_instance"
       ];
     };
     gemm_universal2 = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_gemm_universal_reduce_instance"
         "device_gemm_universal_streamk_instance"
       ];
     };
     gemm_other1 = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_gemm_instance"
         "device_gemm_b_scale_instance"
@@ -135,6 +144,7 @@ let
       ];
     };
     gemm_other2 = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_gemm_add_relu_add_layernorm_instance"
         "device_gemm_add_silu_instance"
@@ -153,12 +163,13 @@ let
         "device_conv1d_bwd_data_instance"
         "device_conv2d_bwd_data_instance"
         "device_conv2d_fwd_instance"
-        "device_conv2d_fwd_bias_relu_instance"
+        # "device_conv2d_fwd_bias_relu_instance"
         "device_conv2d_fwd_bias_relu_add_instance"
         "device_conv3d_bwd_data_instance"
       ];
     };
     pool = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_avg_pool2d_bwd_instance"
         "device_avg_pool3d_bwd_instance"
@@ -168,6 +179,7 @@ let
       ];
     };
     other1 = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_batchnorm_instance"
         "device_contraction_bilinear_instance"
@@ -177,6 +189,7 @@ let
       ];
     };
     other2 = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_column_to_image_instance"
         "device_image_to_column_instance"
@@ -186,6 +199,7 @@ let
       ];
     };
     other3 = {
+      enabled = !miOpenReqLibsOnly;
       targets = [
         "device_normalization_bwd_data_instance"
         "device_normalization_bwd_gamma_beta_instance"
@@ -201,11 +215,13 @@ let
       targets,
       extraCmakeFlags ? [ ],
       requiredSystemFeatures ? [ "big-parallel" ],
+      enabled ? true,
       onlyFor ? [ ],
     }:
     let
       supported =
-        onlyFor == [ ] || (lib.lists.intersectLists composable_kernel_base.gpuTargets onlyFor) != [ ];
+        enabled
+        && (onlyFor == [ ] || (lib.lists.intersectLists composable_kernel_base.gpuTargets onlyFor) != [ ]);
     in
     if supported then
       (composable_kernel_base.overrideAttrs (old: {
