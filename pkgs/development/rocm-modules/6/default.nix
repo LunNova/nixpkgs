@@ -88,7 +88,7 @@ let
       # Replaces hip, opencl-runtime, and rocclr
       clr = self.callPackage ./clr { };
 
-      aotriton = self.callPackage ./aotriton { stdenv = origStdenv; };
+      aotriton = self.callPackage ../common/aotriton { stdenv = origStdenv; };
 
       hipify = self.callPackage ./hipify {
         stdenv = origStdenv;
@@ -140,7 +140,7 @@ let
 
       hipfft = self.callPackage ./hipfft { };
 
-      hiprt = self.callPackage ./hiprt { };
+      hiprt = self.callPackage ../common/hiprt { };
 
       tensile = pyPackages.callPackage ./tensile {
         inherit (self)
