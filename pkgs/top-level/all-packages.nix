@@ -2715,6 +2715,7 @@ with pkgs;
 
   rocmPackages = rocmPackages_6;
   rocmPackages_6 = recurseIntoAttrs (callPackage ../development/rocm-modules/6 { });
+  rocmPackages_7 = recurseIntoAttrs (callPackage ../development/rocm-modules/7 { });
 
   tsm-client-withGui = callPackage ../by-name/ts/tsm-client/package.nix { enableGui = true; };
 
