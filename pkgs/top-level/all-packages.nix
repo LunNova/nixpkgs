@@ -2713,7 +2713,7 @@ with pkgs;
 
   kramdown-asciidoc = callPackage ../tools/typesetting/kramdown-asciidoc { };
 
-  rocmPackages = rocmPackages_6;
+  rocmPackages = rocmPackages_7;
   rocmPackages_6 = recurseIntoAttrs (callPackage ../development/rocm-modules/6 { });
   rocmPackages_7 = recurseIntoAttrs (callPackage ../development/rocm-modules/7 { });
 
