@@ -12,14 +12,14 @@
 }:
 
 stdenv.mkDerivation (finalAttrs: {
-  version = "6.4.3";
+  version = "7.0.1";
   pname = "rocminfo";
 
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "rocminfo";
     rev = "rocm-${finalAttrs.version}";
-    sha256 = "sha256-YscZ5sFsLOVBg98w2X6vTzniTvl9NfCkIE+HAH6vv5Y=";
+    sha256 = "sha256-wE1/golRQm5uggXRQ1BucxV3laypSOUCvjTFx5N2yTE=";
   };
 
   strictDeps = true;

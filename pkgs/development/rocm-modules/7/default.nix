@@ -248,6 +248,7 @@ let
           ucx = prev.ucx.override {
             enableCuda = false;
             enableRocm = true;
+            rocmPackages = self;
           };
         in
         {

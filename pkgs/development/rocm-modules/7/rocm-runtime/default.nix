@@ -19,13 +19,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocm-runtime";
-  version = "6.4.3";
+  version = "7.0.1";
 
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "ROCR-Runtime";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-zs0nydwYUY+8uiPyJxgTfAiV7spUMbESb0jUUvFf+AU=";
+    hash = "sha256-APFcC17JxTxTkJvaAeKezN70wXjWLTDpeIDj8e/mwhQ=";
   };
 
   cmakeBuildType = "RelWithDebInfo";
@@ -63,11 +63,6 @@ stdenv.mkDerivation (finalAttrs: {
       url = "https://github.com/GZGavinZhao/ROCR-Runtime/commit/7c63e7185d8fcf08537a278908946145f6231121.patch";
     })
     # Patches for UB at runtime https://github.com/ROCm/ROCR-Runtime/issues/272
-    (fetchpatch {
-      # [PATCH] hsa-runtime: set underlying type of hsa_region_info_t and hsa_amd_region_info_t to int
-      url = "https://github.com/ROCm/ROCR-Runtime/commit/39a6a168fa07e289a10f6e20e6ead4e303e99ba0.patch";
-      hash = "sha256-CshJJDvII1nNyNmt+YjwMwfBHUTlrdsxkhwfgBwO+WE=";
-    })
     (fetchpatch {
       # [PATCH] queues: fix UB due to 1 << 31
       url = "https://github.com/ROCm/ROCR-Runtime/commit/9b8a0f5dbee1903fa990a7d8accc1c5fbc549636.patch";

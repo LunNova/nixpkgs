@@ -17,12 +17,6 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildInputs = [ rocm-merged-llvm ];
 
-  patches = [
-    # https://github.com/ROCm/llvm-project/pull/183
-    # Fixes always-invoked UB in hipcc
-    ./0001-hipcc-Remove-extra-definition-of-hipBinUtilPtr_-in-d.patch
-  ];
-
   postPatch = ''
     substituteInPlace src/hipBin_amd.h \
       --replace-fail "/usr/bin/lsb_release" "${lsb-release}/bin/lsb_release"

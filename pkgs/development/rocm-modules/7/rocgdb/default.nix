@@ -23,13 +23,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocgdb";
-  version = "6.4.3";
+  version = "7.0.1";
 
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "ROCgdb";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-evDWg2w2FHv6OU5BQOCAXTlDm7JpwdJ3Wh5a2i5r1gQ=";
+    hash = "sha256-OsEzhdLE+L6x6BsIbQXRK8OpEucRmdSBaZJNrLmzz+M=";
   };
 
   nativeBuildInputs = [

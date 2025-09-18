@@ -14,13 +14,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipify";
-  version = "6.4.3";
+  version = "7.0.1";
 
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "HIPIFY";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-uj25WmGCpwouS1yzW9Oil5Vyrbyj5yRITvWF9WaGozM=";
+    hash = "sha256-xcWUYfZvbTHs4BvDiXAOLONfLiCq9uEGOHSK/hOWg7c=";
   };
 
   nativeBuildInputs = [
@@ -48,10 +48,12 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   postInstall = ''
+    rm $out/bin/hipify-perl
     chmod +x $out/bin/*
     chmod +x $out/libexec/*
     patchShebangs $out/bin/
     patchShebangs $out/libexec/
+    ln -s $out/{libexec/hipify,bin}/hipify-perl
   '';
 
   meta = with lib; {

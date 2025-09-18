@@ -43,7 +43,7 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   pname = "composable_kernel_base";
-  version = "6.4-unstable-2025-05-22";
+  version = "7.0.1";
 
   outputs = [
     "out"
@@ -58,9 +58,8 @@ stdenv.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "composable_kernel";
-    # Using a dev snapshot, trying to get MIOpen to work
-    rev = "bc2551ac3b27edc31f20863e3a873508fb73aad2";
-    hash = "sha256-bfmwbgR1ya+zkME3wOyaZX/e+1+ie0sSlugK/kozLsI=";
+    rev = "rocm-${finalAttrs.version}";
+    hash = "sha256-Wql7PD3kg85AFXn7UaTKxhURyDPfVe/OUbR+udrqDc8=";
   };
 
   nativeBuildInputs = [
@@ -123,11 +122,6 @@ stdenv.mkDerivation (finalAttrs: {
     "-DGOOGLETEST_DIR=${gtest.src}" # Custom linker names
   ];
 
-  patches = [
-    # Significant build performance improvement
-    ./avoid-extra-host-compile.patch
-  ];
-
   # No flags to build selectively it seems...
   postPatch =
     # Reduce configure time by preventing thousands of clang-tidy targets being added
@@ -140,12 +134,6 @@ stdenv.mkDerivation (finalAttrs: {
         --replace-fail "add_subdirectory(profiler)" ""
       substituteInPlace cmake/EnableCompilerWarnings.cmake \
         --replace-fail "-Werror" ""
-
-      # Apply equivalent change to https://github.com/ROCm/composable_kernel/pull/2564
-      # TODO: Remove after ROCm 7.1
-      find include/ck/tensor_operation/ -type f -name "*.hpp" -exec sed -i \
-        -e 's/!defined(__HIP_DEVICE_COMPILE__)/false/g' \
-        {} +
     ''
     # Optionally remove tests
     + lib.optionalString (!buildTests) ''

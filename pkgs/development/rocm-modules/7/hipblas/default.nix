@@ -25,7 +25,7 @@
 # Can also use cuBLAS
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipblas";
-  version = "6.4.3";
+  version = "7.0.1";
 
   outputs = [
     "out"
@@ -44,7 +44,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "ROCm";
     repo = "hipBLAS";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-lQv8Ik6+0ldqyeJ05CSGB0309nIpzlRL3CRYeQxVfd0=";
+    hash = "sha256-4y+VPhYikPytY1pXRrhbARh33yEmQDZfVET70Be8e4Q=";
   };
 
   patches = [

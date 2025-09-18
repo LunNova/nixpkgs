@@ -1,8 +1,6 @@
 {
   lib,
   stdenv,
-  # default LLVM version is used as stdenv to build our toolchain
-  llvmPackages,
   # LLVM version closest to ROCm fork to override
   llvmPackages_20,
   overrideCC,
@@ -13,7 +11,6 @@
   rdfind,
   wrapBintoolsWith,
   zstd,
-  zlib,
   gcc-unwrapped,
   glibc,
   replaceVars,
@@ -36,14 +33,14 @@
 }@args:
 
 let
-  version = "6.4.3";
+  version = "7.0.1";
   # major version of this should be the clang version ROCm forked from
-  rocmLlvmVersion = "19.0.0-rocm";
+  rocmLlvmVersion = "20.0.0-rocm";
   # llvmPackages_base version should be close to rocmLlvmVersion,
   # may be one off because AMD backports a lot and the +1 patches
   # may be easier to get to build
   llvmPackages_base = llvmPackages_20;
-  llvmPackagesNoBintools = llvmPackages.override {
+  llvmPackagesNoBintools = llvmPackages_base.override {
     bootBintools = null;
     bootBintoolsNoLibc = null;
   };
@@ -55,7 +52,7 @@ let
       # oddly fuse-ld=lld fails without this override
       overrideCC llvmPackagesNoBintools.stdenv (
         llvmPackagesNoBintools.libstdcxxClang.override {
-          inherit (llvmPackages) bintools;
+          inherit (llvmPackages_base) bintools;
         }
       );
 
@@ -127,7 +124,7 @@ let
     owner = "ROCm";
     repo = "llvm-project";
     rev = "rocm-${version}";
-    hash = "sha256-12ftH5fMPAsbcEBmhADwW1YY/Yxo/MAK1FafKczITMg=";
+    hash = "sha256-C6QTDKqjeqExxgBtlCEZmgsEir1uFijgmvKCA/32+/A=";
   };
   llvmMajorVersion = lib.versions.major rocmLlvmVersion;
   # An llvmPackages (pkgs/development/compilers/llvm/) built from ROCm LLVM's source tree
@@ -185,6 +182,7 @@ let
     (
       (lib.strings.hasSuffix "add-nostdlibinc-flag.patch" (builtins.baseNameOf x))
       || (lib.strings.hasSuffix "clang-at-least-16-LLVMgold-path.patch" (builtins.baseNameOf x))
+      # || (lib.strings.hasSuffix "polly-lit-cfg-add-libs-to-dylib-path.patch" (builtins.baseNameOf x))
     );
   tablegenUsage = x: !(lib.strings.hasInfix "llvm-tblgen" x);
   llvmTargetsFlag = "-DLLVM_TARGETS_TO_BUILD=AMDGPU;${
@@ -203,9 +201,8 @@ let
   commonCmakeFlags = [
     llvmTargetsFlag
     # Compression support is required for compressed offload kernels
-    # Set FORCE_ON so that failure to find the compression libs will be a build error
+    # Set FORCE_ON so that failure to find the compression lib will be a build error
     (lib.cmakeFeature "LLVM_ENABLE_ZSTD" "FORCE_ON")
-    (lib.cmakeFeature "LLVM_ENABLE_ZLIB" "FORCE_ON")
     # required for threaded ThinLTO to work
     (lib.cmakeBool "LLVM_ENABLE_THREADS" true)
     # LLVM tries to call git to embed VCS info if FORCE_VC_ aren't set
@@ -245,28 +242,20 @@ let
       "-g1"
     ]
   );
+  inherit (llvmPackagesRocm) libcxx;
 in
 rec {
-  inherit (llvmPackagesRocm) libunwind;
-  inherit (llvmPackagesRocm) libcxx;
   inherit args;
   # Pass through original attrs for debugging where non-overridden llvm/clang is getting used
   # llvm-orig = llvmPackagesRocm.llvm; # nix why-depends --derivation .#rocmPackages.clr .#rocmPackages.llvm.llvm-orig
   # clang-orig = llvmPackagesRocm.clang; # nix why-depends --derivation .#rocmPackages.clr .#rocmPackages.llvm.clang-orig
   llvm = llvmPackagesRocm.llvm.overrideAttrs (old: {
-    patches = old.patches ++ [
+    patches = (builtins.filter (x: !(removeInapplicablePatches x)) old.patches) ++ [
       (fetchpatch {
         # fix compile error in tools/gold/gold-plugin.cpp
         name = "gold-plugin-fix.patch";
         url = "https://github.com/llvm/llvm-project/commit/b0baa1d8bd68a2ce2f7c5f2b62333e410e9122a1.patch";
         hash = "sha256-yly93PvGIXOnFeDGZ2W+W6SyhdWFM6iwA+qOeaptrh0=";
-        relative = "llvm";
-      })
-      (fetchpatch {
-        # fix tools/llvm-exegesis/X86/latency/ failing with glibc 2.4+
-        name = "exegesis-latency-glibc-fix.patch";
-        sha256 = "sha256-CjKxQlYwHXTM0mVnv8k/ssg5OXuKpJxRvBZGXjrFZAg=";
-        url = "https://github.com/llvm/llvm-project/commit/1e8df9e85a1ff213e5868bd822877695f27504ad.patch";
         relative = "llvm";
       })
       ./perf-increase-namestring-size.patch
@@ -279,7 +268,6 @@ rec {
     nativeBuildInputs = old.nativeBuildInputs ++ [ removeReferencesTo ];
     buildInputs = old.buildInputs ++ [
       zstd
-      zlib
     ];
     env = (old.env or { }) // {
       NIX_CFLAGS_COMPILE = "${(old.env or { }).NIX_CFLAGS_COMPILE or ""} ${llvmExtraCflags}";
@@ -308,7 +296,6 @@ rec {
         ];
         buildInputs = old.buildInputs ++ [
           zstd
-          zlib
         ];
         env = (old.env or { }) // {
           NIX_CFLAGS_COMPILE = "${(old.env or { }).NIX_CFLAGS_COMPILE or ""} ${llvmExtraCflags}";
@@ -337,17 +324,7 @@ rec {
           passthru = old.passthru // {
             inherit gcc-prefix;
           };
-          patches = [
-            (fetchpatch {
-              # [PATCH] [clang] Install scan-build-py into plain "lib" directory
-              # Backported so 19/clang/gnu-install-dirs patch applies to AMD's LLVM fork
-              hash = "sha256-bOqAjBwRKcERpQkiBpuojGs6ddd5Ht3zL5l3TuJK2w8=";
-              url = "https://github.com/llvm/llvm-project/commit/816fde1cbb700ebcc8b3df81fb93d675c04c12cd.patch";
-              relative = "clang";
-            })
-          ]
-          ++ filteredPatches
-          ++ [
+          patches = filteredPatches ++ [
             # Never add FHS include paths
             ./clang-bodge-ignore-systemwide-incls.diff
             # Prevents builds timing out if a single compiler invocation is very slow but
@@ -373,7 +350,6 @@ rec {
           ];
           buildInputs = old.buildInputs ++ [
             zstd
-            zlib
           ];
           env = (old.env or { }) // {
             NIX_CFLAGS_COMPILE = "${(old.env or { }).NIX_CFLAGS_COMPILE or ""} ${llvmExtraCflags}";
@@ -440,23 +416,7 @@ rec {
   clang-tools = llvmPackagesRocm.clang-tools.override {
     inherit clang-unwrapped clang;
   };
-  compiler-rt-libc = llvmPackagesRocm.compiler-rt-libc.overrideAttrs (old: {
-    patches = old.patches ++ [
-      (fetchpatch {
-        name = "Fix-missing-main-function-in-float16-bfloat16-support-checks.patch";
-        url = "https://github.com/ROCm/llvm-project/commit/68d8b3846ab1e6550910f2a9a685690eee558af2.patch";
-        hash = "sha256-Db+L1HFMWVj4CrofsGbn5lnMoCzEcU+7q12KKFb17/g=";
-        relative = "compiler-rt";
-      })
-      (fetchpatch {
-        # Fixes fortify hardening compile error related to openat usage
-        hash = "sha256-pgpN1q1vIQrPXHPxNSZ6zfgV2EflHO5Amzl+2BDjXbs=";
-        url = "https://github.com/llvm/llvm-project/commit/155b7a12820ec45095988b6aa6e057afaf2bc892.patch";
-        relative = "compiler-rt";
-      })
-    ];
-    meta = old.meta // llvmMeta;
-  });
+  compiler-rt-libc = llvmPackagesRocm.compiler-rt-libc.override { libllvm = llvm; };
   compiler-rt = compiler-rt-libc;
   bintools = wrapBintoolsWith {
     bintools = llvmPackagesRocm.bintools-unwrapped.override {
@@ -476,8 +436,8 @@ rec {
       lld
       lld.lib
       lld.dev
-      libunwind
-      libunwind.dev
+      # libunwind
+      # libunwind.dev
       compiler-rt
       compiler-rt.dev
       rocmcxx
@@ -533,7 +493,6 @@ rec {
           ];
         buildInputs = old.buildInputs ++ [
           clang-unwrapped
-          zlib
           zstd
           libxml2
           libffi

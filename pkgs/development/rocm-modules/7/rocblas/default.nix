@@ -39,13 +39,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocblas${clr.gpuArchSuffix}";
-  version = "6.4.3";
+  version = "7.0.1";
 
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "rocBLAS";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-FCzo/BOk4xLEFkdOdqcCXh4a9t3/OIIBEy8oz6oOMWg=";
+    hash = "sha256-iWSeJWPJ1/kMuw5lOijpI/PLGehAElqX6EKe+sqZDfQ=";
   };
 
   nativeBuildInputs = [
@@ -120,7 +120,7 @@ stdenv.mkDerivation (finalAttrs: {
   ++ lib.optionals buildTensile [
     "-DCPACK_SET_DESTDIR=OFF"
     "-DLINK_BLIS=ON"
-    "-DBLIS_LIB=${amd-blis}/lib/libblis-mt.so"
+    "-DBLAS_LIBRARY=${amd-blis}/lib/libblis-mt.so"
     "-DBLIS_INCLUDE_DIR=${amd-blis}/include/blis/"
     "-DBLA_PREFER_PKGCONFIG=ON"
     "-DTensile_CODE_OBJECT_VERSION=default"
@@ -134,21 +134,25 @@ stdenv.mkDerivation (finalAttrs: {
   passthru.amdgpu_targets = gpuTargets';
 
   patches = [
-    (fetchpatch {
-      name = "Extend-rocBLAS-HIP-ISA-compatibility.patch";
-      url = "https://github.com/GZGavinZhao/rocBLAS/commit/89b75ff9cc731f71f370fad90517395e117b03bb.patch";
-      hash = "sha256-W/ohOOyNCcYYLOiQlPzsrTlNtCBdJpKVxO8s+4G7sjo=";
-    })
-    ./hiplaslt-unstable-compat.patch
+    # FIXME: doesn't apply
+    # (fetchpatch {
+    #   name = "Extend-rocBLAS-HIP-ISA-compatibility.patch";
+    #   url = "https://github.com/GZGavinZhao/rocBLAS/commit/89b75ff9cc731f71f370fad90517395e117b03bb.patch";
+    #   hash = "sha256-W/ohOOyNCcYYLOiQlPzsrTlNtCBdJpKVxO8s+4G7sjo=";
+    # })
   ];
 
   # Pass $NIX_BUILD_CORES to Tensile
   postPatch = ''
     substituteInPlace cmake/build-options.cmake \
       --replace-fail 'Tensile_CPU_THREADS ""' 'Tensile_CPU_THREADS "$ENV{NIX_BUILD_CORES}"'
-    substituteInPlace CMakeLists.txt \
-      --replace-fail "4.43.0" "4.44.0" \
-      --replace-fail '0.10' '1.0'
+  ''
+  # Workaround: libblis detection uses broken absolute paths
+  # TODO: upstream a proper fix
+  + ''
+    substituteInPlace clients/CMakeLists.txt \
+      --replace-fail "if ( NOT WIN32 )" "if(OFF)" \
+      --replace-fail "else() # WIN32" "elseif(OFF)"
   '';
 
   passthru.updateScript = rocmUpdateScript {

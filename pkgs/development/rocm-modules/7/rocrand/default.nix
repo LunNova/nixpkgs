@@ -15,7 +15,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocrand${clr.gpuArchSuffix}";
-  version = "6.4.3";
+  version = "7.0.1";
 
   outputs = [
     "out"
@@ -31,7 +31,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "ROCm";
     repo = "rocRAND";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-pZAwmsWup0byGxJ5ADbztco8svBpIjBWITjs+OgKvQc=";
+    hash = "sha256-O7YCQBtFSa0xiHbbAXX2FyE6uRywEaMaJyX85875Yd0=";
   };
 
   nativeBuildInputs = [

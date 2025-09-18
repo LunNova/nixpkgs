@@ -11,17 +11,17 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocm-smi";
-  version = "6.4.3";
+  version = "7.0.1";
 
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "rocm_smi_lib";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-yJ3Bf+tM39JWbY+A0NlpHNkvythdAdz6ZVp1AvLcXhk=";
+    hash = "sha256-jhjdx3xF6hu+p99dFAGgUwQ2fIhNf5WzeZqeWW1fKc4=";
   };
 
   patches = [
-    ./cmake.patch
+    # ./cmake.patch
   ];
 
   propagatedBuildInputs = [
@@ -39,6 +39,7 @@ stdenv.mkDerivation (finalAttrs: {
     # See: https://github.com/NixOS/nixpkgs/pull/197838
     "-DCMAKE_INSTALL_BINDIR=bin"
     "-DCMAKE_INSTALL_LIBDIR=lib"
+    "-DCMAKE_INSTALL_LIBEXECDIR=libexec"
     "-DCMAKE_INSTALL_INCLUDEDIR=include"
   ];
 

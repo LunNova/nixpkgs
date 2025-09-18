@@ -20,7 +20,7 @@
 # This can also use cuSPARSE as a backend instead of rocSPARSE
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipsparse";
-  version = "6.4.3";
+  version = "7.0.1";
 
   outputs = [
     "out"
@@ -36,7 +36,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "ROCm";
     repo = "hipSPARSE";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-fbh9fKlzxuIBTeCV/bEQbUS3lO6O3KoGF7/tTqRaCpE=";
+    hash = "sha256-hfC+QsOfDNKIZROgTZZsGbAG0yghc27PyVwCDr8MEJ8=";
   };
 
   nativeBuildInputs = [

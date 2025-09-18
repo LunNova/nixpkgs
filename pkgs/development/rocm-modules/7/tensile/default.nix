@@ -20,7 +20,7 @@ buildPythonPackage rec {
   pname = "tensile";
   # Using a specific commit which has compression support from after the 6.4 release
   # Without compression packages are too large for hydra
-  version = "6.4-unstable-2025-06-12";
+  version = "7.0.0";
   format = "pyproject";
 
   src = fetchFromGitHub {

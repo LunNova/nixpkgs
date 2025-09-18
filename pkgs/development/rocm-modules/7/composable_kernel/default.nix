@@ -71,7 +71,7 @@ let
     grouped_conv_fwd_3d1 = {
       targets = [
         "device_grouped_conv3d_fwd_instance"
-        "device_grouped_conv3d_fwd_bias_relu_instance"
+        # "device_grouped_conv3d_fwd_bias_relu_instance"
         "device_grouped_conv3d_fwd_bilinear_instance"
         "device_grouped_conv3d_fwd_convinvscale_instance"
         "device_grouped_conv3d_fwd_convscale_instance"

@@ -18,13 +18,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocprofiler-register";
-  version = "6.4.3";
+  version = "7.0.1";
 
   src = fetchFromGitHub {
     owner = "ROCm";
     repo = "rocprofiler-register";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-HaN4XMHuCRDfKOpfuZ2SkOEQfAZKouh6luqbtATUYm0=";
+    hash = "sha256-2uAS/9gHinVLCMa/fX+6T+0RyHCLToyxDeobolZoD+g=";
     fetchSubmodules = true;
   };
 

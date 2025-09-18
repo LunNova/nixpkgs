@@ -43,7 +43,7 @@
 let
   # FIXME: cmake files need patched to include this properly
   cFlags = "-Wno-documentation-pedantic --offload-compress -I${hipblas-common}/include -I${hipblas}/include -I${roctracer}/include -I${nlohmann_json}/include -I${sqlite.dev}/include -I${rocrand}/include";
-  version = "6.4.3";
+  version = "7.0.0";
 
   # Targets outside this list will get
   # error: use of undeclared identifier 'CK_BUFFER_RESOURCE_3RD_DWORD'
@@ -69,7 +69,7 @@ let
     owner = "ROCm";
     repo = "MIOpen";
     rev = "rocm-${version}";
-    hash = "sha256-DEcVj2vOwIYYyNKEKFqZ0fb9o+/QRpwiSksxwnmgEMc=";
+    hash = "sha256-PJj2LzU5naAku+FOnMl+Ymad2beYYSS81/K/CR+l2UA=";
     fetchLFS = true;
     fetchSubmodules = true;
     # WORKAROUND: .lfsconfig is incorrectly set to exclude everything upstream
@@ -305,11 +305,11 @@ stdenv.mkDerivation (finalAttrs: {
 
   requiredSystemFeatures = [ "big-parallel" ];
 
-  passthru.updateScript = rocmUpdateScript {
-    name = finalAttrs.pname;
-    inherit (finalAttrs.src) owner;
-    inherit (finalAttrs.src) repo;
-  };
+  # passthru.updateScript = rocmUpdateScript {
+  #   name = finalAttrs.pname;
+  #   inherit (finalAttrs.src) owner;
+  #   inherit (finalAttrs.src) repo;
+  # };
 
   meta = with lib; {
     description = "Machine intelligence library for ROCm";

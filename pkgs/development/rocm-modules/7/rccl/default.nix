@@ -13,6 +13,7 @@
   perl,
   hipify,
   python3,
+  fmt,
   gtest,
   chrpath,
   roctracer,
@@ -39,7 +40,7 @@ in
 # infiniband ib_peer_mem support isn't in the mainline kernel but is carried by some distros
 stdenv.mkDerivation (finalAttrs: {
   pname = "rccl${clr.gpuArchSuffix}";
-  version = "6.4.3";
+  version = "7.0.1";
 
   outputs = [
     "out"
@@ -49,8 +50,8 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   patches = [
-    ./fix-mainline-support-and-ub.diff
-    ./enable-mscclpp-on-all-gfx9.diff
+    # ./fix-mainline-support-and-ub.diff
+    # ./enable-mscclpp-on-all-gfx9.diff
     ./rccl-test-missing-iomanip.diff
     ./fix_hw_reg_hw_id_gt_gfx10.patch
   ];
@@ -59,7 +60,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "ROCm";
     repo = "rccl";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-XpD+UjgdbAoGYK5UvvTX3f8rny4tiEDH/vYoCdZhtjo=";
+    hash = "sha256-ASU+RB0Fhb1E8zZR3wLzbnLoigXWH3aNWirViRDdkw0=";
   };
 
   nativeBuildInputs = [
@@ -75,6 +76,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildInputs = [
     rocm-smi
+    fmt
     gtest
     roctracer
     rocprofiler

@@ -55,7 +55,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "clr";
-  version = "6.4.3";
+  version = "7.0.1";
 
   outputs = [
     "out"
@@ -69,7 +69,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "ROCm";
     repo = "clr";
     rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-DOAAuC9TN1//v56GXyUMJwQHgOuctC+WsC5agrgL+QM=";
+    hash = "sha256-z7qmL7c/0zlB5/rb7zporfeUPM9KIkS1iZf6GmYFxbo=";
   };
 
   nativeBuildInputs = [
@@ -134,22 +134,12 @@ stdenv.mkDerivation (finalAttrs: {
       sha256 = "sha256-oj1loBEuqzuMihOKoN0wR92Wo25AshN5MpBuTq/9TMw=";
       url = "https://github.com/GZGavinZhao/clr/commit/f675b9b46d9f7bb8e003f4f47f616fa86a0b7a5e.patch";
     })
-    (fetchpatch {
-      # [PATCH] improve hipamd isa compatibility check
-      sha256 = "sha256-E3ERoVjUVWCiYHuE1GaVY5jMrAVx3B1cAVHM4/HPuaQ=";
-      url = "https://github.com/GZGavinZhao/clr/commit/aec0fc56ee2d10a2bc269c418fa847da2ee9969a.patch";
-    })
-    (fetchpatch {
-      # [PATCH] SWDEV-507104 - Removes alignment requirement for Semaphore class to resolve runtime misaligned memory issues
-      sha256 = "sha256-nStJ22B/CM0fzQTvYjbHDbQt0GlE8DXxVK+UDU9BAx4=";
-      url = "https://github.com/ROCm/clr/commit/21d764518363d74187deaef2e66c1a127bc5aa64.patch";
-    })
-    (fetchpatch {
-      # CMake 4 compat
-      # [PATCH] SWDEV-509213 - make cmake_minimum_required consistent across clr
-      url = "https://github.com/ROCm/clr/commit/fcaefe97b862afe12aaac0147f1004e6dc595fce.patch";
-      hash = "sha256-hRZXbASbIOOETe+T4mDyyiRWLXd6RDKRieN2ns1w/rs=";
-    })
+    # FIXME: update
+    # (fetchpatch {
+    #   # [PATCH] improve hipamd isa compatibility check
+    #   sha256 = "sha256-E3ERoVjUVWCiYHuE1GaVY5jMrAVx3B1cAVHM4/HPuaQ=";
+    #   url = "https://github.com/GZGavinZhao/clr/commit/aec0fc56ee2d10a2bc269c418fa847da2ee9969a.patch";
+    # })
   ];
 
   postPatch = ''
@@ -180,7 +170,7 @@ stdenv.mkDerivation (finalAttrs: {
     cp ${amdclang}/bin/* $out/bin/
     cp ${amdclangxx}/bin/* $out/bin/
 
-    for prog in hip{cc,config}{,.pl}; do
+    for prog in hip{cc,config}; do
       wrapProgram $out/bin/$prog ${lib.concatStringsSep " " wrapperArgs}
     done
 

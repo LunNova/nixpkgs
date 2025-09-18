@@ -70,7 +70,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipblaslt${clr.gpuArchSuffix}";
-  version = "6.5-unstable-2025-08-21";
+  version = "7.0-unstable-2025-08-21";
 
   src = fetchFromGitHub {
     owner = "ROCm";
