@@ -53,10 +53,7 @@ let
         stdenv = origStdenv;
       };
 
-      rocm-comgr = self.callPackage ./rocm-comgr {
-        stdenv = origStdenv;
-        inherit (llvm) rocm-merged-llvm;
-      };
+      rocm-comgr = self.callPackage ./rocm-comgr { };
 
       rocminfo = self.callPackage ./rocminfo { stdenv = origStdenv; };
 
