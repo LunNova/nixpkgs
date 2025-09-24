@@ -1198,6 +1198,7 @@ assert bootstrapTools.passthru.isFromBootstrapFiles or false; # sanity check
                 ))
                 // {
                   inherit (super.llvmPackages) override;
+                  recurseForDerivations = true;
                 };
             }
             (sdkPackages prevStage)
@@ -1256,6 +1257,7 @@ assert bootstrapTools.passthru.isFromBootstrapFiles or false; # sanity check
                 ))
                 // {
                   inherit (super."llvmPackages_${llvmVersion}") override;
+                  recurseForDerivations = true;
                 };
             }
           ];
