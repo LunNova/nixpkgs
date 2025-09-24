@@ -1191,6 +1191,15 @@ assert bootstrapTools.passthru.isFromBootstrapFiles or false; # sanity check
           mergeDisjointAttrs [
             (llvmLibrariesDeps prevStage)
             (llvmToolsDeps prevStage)
+            {
+              llvmPackages =
+                (super.llvmPackages.overrideScope (
+                  _: _: llvmToolsPackages prevStage // llvmLibrariesPackages prevStage
+                ))
+                // {
+                  inherit (super.llvmPackages) override;
+                };
+            }
             (sdkPackages prevStage)
             (sdkPackagesNoCC prevStage)
             {
