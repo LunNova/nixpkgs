@@ -1248,6 +1248,7 @@ assert bootstrapTools.passthru.isFromBootstrapFiles or false; # sanity check
                 ))
                 // {
                   inherit (super."llvmPackages_${llvmVersion}") override;
+                  recurseForDerivations = true;
                 };
             }
           ];
