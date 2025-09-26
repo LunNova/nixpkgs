@@ -193,6 +193,9 @@ let
         }
       );
 
+      # clang-tidy and other optional tools
+      clang-tools-extra = callPackage ./clang-tools-extra { };
+
       # Wrapper for standalone command line utilities
       clang-tools = callPackage ./clang-tools { };
 
