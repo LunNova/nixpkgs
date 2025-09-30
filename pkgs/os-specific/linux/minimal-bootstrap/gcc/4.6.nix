@@ -25,11 +25,6 @@ let
     sha256 = "173kdb188qg79pcz073cj9967rs2vzanyjdjyxy9v0xb0p5sad75";
   };
 
-  ccSrc = fetchurl {
-    url = "mirror://gnu/gcc/gcc-${version}/gcc-g++-${version}.tar.gz";
-    sha256 = "1fqqk5zkmdg4vmqzdmip9i42q6b82i3f6yc0n86n9021cr7ms2k9";
-  };
-
   gmpVersion = "4.3.2";
   gmp = fetchurl {
     url = "mirror://gnu/gmp/gmp-${gmpVersion}.tar.gz";
@@ -90,7 +85,6 @@ bash.runCommand "${pname}-${version}"
   ''
     # Unpack
     tar xzf ${src}
-    tar xzf ${ccSrc}
     tar xzf ${gmp}
     tar xzf ${mpfr}
     tar xzf ${mpc}
@@ -115,8 +109,8 @@ bash.runCommand "${pname}-${version}"
 
     bash ./configure \
       --prefix=$out \
-      --build=${buildPlatform.config} \
-      --host=${hostPlatform.config} \
+      --build=i686-unknown-linux-gnu \
+      --host=i686-unknown-linux-gnu \
       --with-native-system-header-dir=${tinycc.libs}/include \
       --with-build-sysroot=${tinycc.libs}/include \
       --disable-bootstrap \
