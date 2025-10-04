@@ -58,6 +58,7 @@ let
       url = "${liveBootstrap}/patches/va_list.patch";
       hash = "sha256-UmcMIl+YCi3wIeVvjbsCyqFlkyYsM4ECNwTfXP+s7vg=";
     })
+    ./always-flush.patch
   ];
 in
 bash.runCommand "${pname}-${version}"
