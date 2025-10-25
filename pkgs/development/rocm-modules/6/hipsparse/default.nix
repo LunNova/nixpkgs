@@ -8,6 +8,7 @@
   rocsparse,
   clr,
   gfortran,
+  git,
   gtest,
   openmp,
   buildTests ? false,
@@ -47,6 +48,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildInputs = [
     rocsparse
+    git
   ]
   ++ lib.optionals (buildTests || buildBenchmarks) [
     gtest

@@ -6,12 +6,15 @@
   rocmUpdateScript,
   pkg-config,
   cmake,
+  ninja,
   xxd,
   rocm-device-libs,
   elfutils,
   libdrm,
   numactl,
-  llvm,
+  valgrind,
+  libxml2,
+  rocm-merged-llvm,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -28,21 +31,22 @@ stdenv.mkDerivation (finalAttrs: {
   cmakeBuildType = "RelWithDebInfo";
   separateDebugInfo = true;
   __structuredAttrs = true;
-  strictDeps = true;
 
   nativeBuildInputs = [
     pkg-config
     cmake
-    xxd # used by create_hsaco_ascii_file.sh
-    llvm.rocm-toolchain
+    ninja
+    xxd
+    rocm-merged-llvm
   ];
 
   buildInputs = [
-    llvm.clang-unwrapped
-    llvm.llvm
     elfutils
     libdrm
     numactl
+    # without valgrind, additional work for "kCodeCopyAligned11" is done in the installPhase
+    valgrind
+    libxml2
   ];
 
   cmakeFlags = [
@@ -94,9 +98,6 @@ stdenv.mkDerivation (finalAttrs: {
 
     substituteInPlace CMakeLists.txt \
       --replace 'hsa/include/hsa' 'include/hsa'
-
-    substituteInPlace runtime/hsa-runtime/image/blit_src/CMakeLists.txt \
-      --replace-fail 'COMMAND clang' "COMMAND ${llvm.rocm-toolchain}/bin/clang"
 
     export HIP_DEVICE_LIB_PATH="${rocm-device-libs}/amdgcn/bitcode"
   '';

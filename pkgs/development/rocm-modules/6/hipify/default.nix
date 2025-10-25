@@ -4,7 +4,9 @@
   fetchFromGitHub,
   rocmUpdateScript,
   cmake,
-  llvm,
+  clang,
+  libxml2,
+  rocm-merged-llvm,
   zlib,
   zstd,
   perl,
@@ -21,27 +23,21 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-uj25WmGCpwouS1yzW9Oil5Vyrbyj5yRITvWF9WaGozM=";
   };
 
-  strictDeps = true;
-
   nativeBuildInputs = [
     cmake
-    perl
-    llvm.rocm-toolchain
   ];
 
   buildInputs = [
-    llvm.llvm
-    llvm.clang-unwrapped
-    perl
+    libxml2
+    rocm-merged-llvm
     zlib
     zstd
+    perl
   ];
-
-  env.CXXFLAGS = "-I${lib.getInclude llvm.llvm}/include -I${lib.getInclude llvm.clang-unwrapped}/include";
 
   postPatch = ''
     substituteInPlace CMakeLists.txt \
-      --replace-fail "\''${LLVM_TOOLS_BINARY_DIR}/clang" "${llvm.rocm-toolchain}/bin/clang"
+      --replace "\''${LLVM_TOOLS_BINARY_DIR}/clang" "${clang}/bin/clang"
     chmod +x bin/*
   '';
 

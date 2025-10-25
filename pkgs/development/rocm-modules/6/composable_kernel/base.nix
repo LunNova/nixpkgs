@@ -5,7 +5,7 @@
   rocmUpdateScript,
   cmake,
   rocm-cmake,
-  llvm,
+  rocm-merged-llvm,
   clr,
   rocminfo,
   python3,
@@ -85,6 +85,7 @@ stdenv.mkDerivation (finalAttrs: {
   strictDeps = true;
   enableParallelBuilding = true;
   env.ROCM_PATH = clr;
+  env.HIP_CLANG_PATH = "${rocm-merged-llvm}/bin";
 
   cmakeFlags = [
     "-DCMAKE_MODULE_PATH=${clr}/hip/cmake"

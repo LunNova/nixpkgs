@@ -6,6 +6,7 @@
   cmake,
   rocm-cmake,
   clr,
+  git,
   libxml2,
   libedit,
   zstd,
@@ -63,6 +64,7 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   buildInputs = [
+    git
     libxml2
     libedit
   ];

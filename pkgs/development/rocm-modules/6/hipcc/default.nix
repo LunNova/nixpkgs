@@ -1,7 +1,7 @@
 {
   lib,
   stdenv,
-  llvm,
+  rocm-merged-llvm,
   cmake,
   lsb-release,
 }:
@@ -9,19 +9,13 @@
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipcc";
   # In-tree with ROCm LLVM
-  inherit (llvm.llvm) version;
-  src = llvm.llvm.monorepoSrc;
+  inherit (rocm-merged-llvm) version;
+  src = rocm-merged-llvm.llvm-src;
   sourceRoot = "${finalAttrs.src.name}/amd/hipcc";
-  strictDeps = true;
 
-  nativeBuildInputs = [
-    llvm.rocm-toolchain
-    cmake
-  ];
+  nativeBuildInputs = [ cmake ];
 
-  buildInputs = [
-    llvm.clang-unwrapped
-  ];
+  buildInputs = [ rocm-merged-llvm ];
 
   patches = [
     # https://github.com/ROCm/llvm-project/pull/183

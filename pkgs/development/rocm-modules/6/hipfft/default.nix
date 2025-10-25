@@ -6,6 +6,7 @@
   cmake,
   rocm-cmake,
   clr,
+  git,
   rocfft,
   gtest,
   boost,
@@ -46,6 +47,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     clr
+    git
     cmake
     rocm-cmake
   ];

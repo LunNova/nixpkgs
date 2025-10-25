@@ -16,10 +16,11 @@
   numactl,
   libpciaccess,
   libxml2,
-  llvm,
   elfutils,
   mpi,
+  systemd,
   gtest,
+  git,
   python3Packages,
   gpuTargets ? clr.gpuTargets,
 }:
@@ -58,6 +59,7 @@ stdenv.mkDerivation (finalAttrs: {
     cmake
     clang
     clr
+    git
     python3Packages.lxml
     python3Packages.cppheaderparser
     python3Packages.pyyaml
@@ -66,13 +68,12 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   buildInputs = [
-    llvm.clang-unwrapped
-    llvm.llvm
     numactl
     libpciaccess
     libxml2
     elfutils
     mpi
+    systemd
     gtest
     aqlprofile
   ];
