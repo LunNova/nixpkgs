@@ -79,9 +79,9 @@ makeImpureTest {
     export AMD_LOG_LEVEL=2
     echo "OCL_ICD_VENDORS=$OCL_ICD_VENDORS"
 
+    (set -x
     cd ${examples}/bin
 
-    (set -x
     # Basic enumeration and queries
     ./enumopencl
     ./enumopenclpp
@@ -96,6 +96,8 @@ makeImpureTest {
     # Kernel compilation tests
     ./kernelfromfile
     ./ndrangekernelfromfile
+    # ./spirvkernelfromfile
+    # FIXME: No SPIR-V support
 
     # Shared Virtual Memory tests
     ./svmqueries
@@ -103,15 +105,19 @@ makeImpureTest {
     ./cgsvmhelloworld
 
     # Atomic operations
-    ./floatatomics
+    # ./floatatomics
+    # FIXME: Requires CL3.0
+
+    # Actual compute workloads
+    ./julia
+    # TODO: Must package opencl-intercept-layer
+    # ./sinjulia
+    ./mandelbrot
+    ./sobel
 
     # Queue experiments
     ./enumqueuefamilies
     ./queueexperiments
-
-    # Actual compute workloads
-    ./julia
-    ./mandelbrot
     )
 
     echo "=== OpenCL tests completed successfully ==="

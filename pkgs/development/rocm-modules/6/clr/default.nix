@@ -102,8 +102,8 @@ stdenv.mkDerivation (finalAttrs: {
     rocminfo
   ];
 
-  cmakeBuildType = "RelWithDebInfo";
-  separateDebugInfo = true;
+  cmakeBuildType = "Debug";
+  # separateDebugInfo = true;
 
   cmakeFlags = [
     "-DCMAKE_POLICY_DEFAULT_CMP0072=NEW" # Prefer newer OpenGL libraries
@@ -129,6 +129,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   patches = [
     ./cmake-find-x11-libgl.patch
+    ./surface-kernel-compile-failures.patch
     (fetchpatch {
       # [PATCH] improve rocclr isa compatibility check
       sha256 = "sha256-oj1loBEuqzuMihOKoN0wR92Wo25AshN5MpBuTq/9TMw=";

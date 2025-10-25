@@ -1,0 +1,152 @@
+diff --git a/rocclr/device/devprogram.cpp b/rocclr/device/devprogram.cpp
+index 374ad2315..580452c3c 100644
+--- a/rocclr/device/devprogram.cpp
++++ b/rocclr/device/devprogram.cpp
+@@ -68,6 +68,17 @@ inline static std::vector<std::string> splitSpaceSeparatedString(const char *str
+   return vec;
+ }
+ 
++#if defined(USE_COMGR_LIBRARY)
++// Helper function to convert COMGR status codes to human-readable strings
++static inline const char* comgr_strerror(amd_comgr_status_t status) {
++  const char* str = nullptr;
++  if (amd::Comgr::status_string(status, &str) == AMD_COMGR_STATUS_SUCCESS) {
++    return str;
++  }
++  return "Unknown COMGR error";
++}
++#endif  // defined(USE_COMGR_LIBRARY)
++
+ #if defined(WITH_COMPILER_LIB)
+ // HSAIL build lock
+ amd::Monitor Program::buildLock_(true);
+@@ -386,6 +397,8 @@ bool Program::compileToLLVMBitcode(const amd_comgr_data_set_t compileInputs,
+ 
+   amd_comgr_language_t langver = getCOMGRLanguage(isHIP(), *amdOptions);
+   if (langver == AMD_COMGR_LANGUAGE_NONE) {
++    ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR language version not supported for CLStd: %s",
++            amdOptions->oVariables->CLStd);
+     return false;
+   }
+ 
+@@ -400,15 +413,24 @@ bool Program::compileToLLVMBitcode(const amd_comgr_data_set_t compileInputs,
+   bool hasDataSetPCH = false;
+ 
+   amd_comgr_status_t status = createAction(langver, options, &action, &hasAction);
++  if (status != AMD_COMGR_STATUS_SUCCESS) {
++    ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR createAction failed: %s", comgr_strerror(status));
++  }
+ 
+   if (status == AMD_COMGR_STATUS_SUCCESS) {
+     status = amd::Comgr::create_data_set(&output);
++    if (status != AMD_COMGR_STATUS_SUCCESS) {
++      ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR create_data_set (output) failed: %s", comgr_strerror(status));
++    }
+   }
+ 
+   //  Adding Precompiled Headers
+   if (status == AMD_COMGR_STATUS_SUCCESS) {
+     hasOutput = true;
+     status = amd::Comgr::create_data_set(&dataSetPCH);
++    if (status != AMD_COMGR_STATUS_SUCCESS) {
++      ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR create_data_set (PCH) failed: %s", comgr_strerror(status));
++    }
+   }
+ 
+   // Preprocess the source
+@@ -429,6 +451,9 @@ bool Program::compileToLLVMBitcode(const amd_comgr_data_set_t compileInputs,
+         status = amd::Comgr::do_action(AMD_COMGR_ACTION_SOURCE_TO_PREPROCESSOR,
+                                        action, input, dataSetPreprocessor);
+         extractBuildLog(dataSetPreprocessor);
++        if (status != AMD_COMGR_STATUS_SUCCESS) {
++          ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR preprocessing action failed: %s", comgr_strerror(status));
++        }
+       }
+ 
+       if (status == AMD_COMGR_STATUS_SUCCESS) {
+@@ -448,6 +473,9 @@ bool Program::compileToLLVMBitcode(const amd_comgr_data_set_t compileInputs,
+       status = amd::Comgr::do_action(AMD_COMGR_ACTION_ADD_PRECOMPILED_HEADERS,
+                                      action, input, dataSetPCH);
+       extractBuildLog(dataSetPCH);
++      if (status != AMD_COMGR_STATUS_SUCCESS) {
++        ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR add precompiled headers action failed: %s", comgr_strerror(status));
++      }
+     }
+ 
+     // Set input for the next stage
+@@ -465,6 +493,9 @@ bool Program::compileToLLVMBitcode(const amd_comgr_data_set_t compileInputs,
+                                      action, input, output);
+     }
+     extractBuildLog(output);
++    if (status != AMD_COMGR_STATUS_SUCCESS) {
++      ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR compilation to BC failed: %s", comgr_strerror(status));
++    }
+   }
+ 
+   if (status == AMD_COMGR_STATUS_SUCCESS) {
+@@ -474,6 +505,9 @@ bool Program::compileToLLVMBitcode(const amd_comgr_data_set_t compileInputs,
+     }
+     status = extractByteCodeBinary(output, AMD_COMGR_DATA_KIND_BC, outFileName, binaryData,
+                                    binarySize);
++    if (status != AMD_COMGR_STATUS_SUCCESS) {
++      ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR extractByteCodeBinary failed: %s", comgr_strerror(status));
++    }
+   }
+ 
+   if (hasAction) {
+@@ -508,9 +542,15 @@ bool Program::compileAndLinkExecutable(const amd_comgr_data_set_t inputs,
+   bool hasRelocatableData = false;
+ 
+   amd_comgr_status_t status = createAction(AMD_COMGR_LANGUAGE_NONE, options, &action, &hasAction);
++  if (status != AMD_COMGR_STATUS_SUCCESS) {
++    ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR createAction (link) failed: %s", comgr_strerror(status));
++  }
+ 
+   if (status == AMD_COMGR_STATUS_SUCCESS) {
+     status = amd::Comgr::create_data_set(&output);
++    if (status != AMD_COMGR_STATUS_SUCCESS) {
++      ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR create_data_set (output) failed: %s", comgr_strerror(status));
++    }
+   }
+ 
+   if (status == AMD_COMGR_STATUS_SUCCESS) {
+@@ -529,6 +569,9 @@ bool Program::compileAndLinkExecutable(const amd_comgr_data_set_t inputs,
+         status = amd::Comgr::do_action(AMD_COMGR_ACTION_CODEGEN_BC_TO_ASSEMBLY,
+                                        action, inputs, assemblyData);
+         extractBuildLog(assemblyData);
++        if (status != AMD_COMGR_STATUS_SUCCESS) {
++          ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR codegen BC to assembly failed: %s", comgr_strerror(status));
++        }
+       }
+ 
+       // dump the ISA
+@@ -546,6 +589,9 @@ bool Program::compileAndLinkExecutable(const amd_comgr_data_set_t inputs,
+   //  Create the relocatable data set
+   if (status == AMD_COMGR_STATUS_SUCCESS) {
+     status = amd::Comgr::create_data_set(&relocatableData);
++    if (status != AMD_COMGR_STATUS_SUCCESS) {
++      ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR create_data_set (relocatable) failed: %s", comgr_strerror(status));
++    }
+   }
+ 
+   if (status == AMD_COMGR_STATUS_SUCCESS) {
+@@ -555,6 +601,9 @@ bool Program::compileAndLinkExecutable(const amd_comgr_data_set_t inputs,
+         : AMD_COMGR_ACTION_CODEGEN_BC_TO_RELOCATABLE;
+     status = amd::Comgr::do_action(kind, action, inputs, relocatableData);
+     extractBuildLog(relocatableData);
++    if (status != AMD_COMGR_STATUS_SUCCESS) {
++      ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR codegen/assemble to relocatable failed: %s", comgr_strerror(status));
++    }
+   }
+ 
+   // Create executable from the relocatable data set
+@@ -563,6 +612,9 @@ bool Program::compileAndLinkExecutable(const amd_comgr_data_set_t inputs,
+     status = amd::Comgr::do_action(AMD_COMGR_ACTION_LINK_RELOCATABLE_TO_EXECUTABLE, action,
+                                    relocatableData, output);
+     extractBuildLog(output);
++    if (status != AMD_COMGR_STATUS_SUCCESS) {
++      ClPrint(amd::LOG_WARNING, amd::LOG_CODE, "COMGR link relocatable to executable failed: %s", comgr_strerror(status));
++    }
+   }
+ 
+   if (status == AMD_COMGR_STATUS_SUCCESS) {
