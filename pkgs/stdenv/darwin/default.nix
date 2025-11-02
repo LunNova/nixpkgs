@@ -1236,7 +1236,7 @@ assert bootstrapTools.passthru.isFromBootstrapFiles or false; # sanity check
             # Since LLVM should be the same regardless of target platform, overlay it to avoid an unnecessary
             # rebuild when cross-compiling from Darwin to another platform using clang.
             {
-
+              # FIXME: why are we mixing llvmPackages_21 and llvmPackages overrides?
               "llvmPackages_${lib.versions.major prevStage.llvmPackages.release_version}" =
                 let
                   llvmVersion = lib.versions.major prevStage.llvmPackages.release_version;
@@ -1245,12 +1245,15 @@ assert bootstrapTools.passthru.isFromBootstrapFiles or false; # sanity check
                   _: _:
                   llvmToolsPackages prevStage
                   // llvmLibrariesPackages prevStage
+                  // lib.optionalAttrs (super.stdenv.targetPlatform == localSystem) {
+                    inherit (prevStage) clang;
+                  }
                   // {
                     inherit (super."llvmPackages_${llvmVersion}") llvm-manpages;
                   }
                 ))
                 // {
-                  inherit (super."llvmPackages_${llvmVersion}") override;
+                  inherit (super."llvmPackages_${llvmVersion}") override; # FIXME
                   recurseForDerivations = true;
                 };
             }
@@ -1284,24 +1287,7 @@ assert bootstrapTools.passthru.isFromBootstrapFiles or false; # sanity check
     assert prevStage.libiconv == prevStage.darwin.libiconv;
 
     {
-      inherit (prevStage) config overlays;
-      # This should be done in the `overrideScope` above, but it causes rebuilds.
-      # TODO: Move it there once https://github.com/NixOS/nixpkgs/pull/445668 is merged.
-      stdenv = prevStage.stdenv // {
-        overrides =
-          self: super:
-          (prevStage.stdenv.overrides self super)
-          // lib.optionalAttrs (super.stdenv.targetPlatform == localSystem) (
-            let
-              llvmVersion = lib.versions.major prevStage.llvmPackages.release_version;
-            in
-            {
-              "llvmPackages_${llvmVersion}" = prevStage."llvmPackages_${llvmVersion}" // {
-                inherit (prevStage) clang;
-              };
-            }
-          );
-      };
+      inherit (prevStage) config overlays stdenv;
     }
   )
 ]
