@@ -4,6 +4,7 @@
   config,
   buildPythonPackage,
   fetchFromGitHub,
+  fetchpatch,
   pythonAtLeast,
 
   # patches
@@ -62,6 +63,20 @@ buildPythonPackage (finalAttrs: {
     (replaceVars ./0002-nvidia-driver-short-circuit-before-ldconfig.patch {
       libcudaStubsDir =
         if cudaSupport then "${lib.getOutput "stubs" cudaPackages.cuda_cudart}/lib/stubs" else null;
+    })
+    (fetchpatch {
+      # [AMD] Add python bindings for hipBlas
+      # Drop after triton is bumped to 3.6
+      name = "triton-rocm7.1-headers-1.patch";
+      url = "https://github.com/triton-lang/triton/commit/eb2d49ab48515c9c70d2c848b6d4eeedef175b02.patch";
+      hash = "sha256-ZYDKp4NOKablEn68CIC76INdV0U3uk3GhnQaHYvSUCQ=";
+    })
+    (fetchpatch {
+      # [AMD] Update HIP header files to 7.1
+      # Drop after triton is bumped to 3.6
+      name = "triton-rocm7.1-headers-2.patch";
+      url = "https://github.com/triton-lang/triton/commit/0a4cbff20edc4079c1a87624d90697906cab515e.patch";
+      hash = "sha256-y5gnGPc+XtXKNHnBj/aYQb74g80TGy/AkuP+16jn9hg=";
     })
   ]
   ++ lib.optionals cudaSupport [
@@ -309,6 +324,26 @@ buildPythonPackage (finalAttrs: {
             path = triton.backends.amd.driver._get_path_to_hip_runtime_dylib()
             print(f'libamdhip64 path: {path}')
             assert os.path.exists(path)
+            " && touch $out
+          '';
+
+      # Test that rocm + triton + torch can load torch's triton utils
+      rocm-torch-triton =
+        runCommand "triton-rocm-libamdhip64-path-test"
+          {
+            buildInputs = [
+              triton
+              python
+              rocmPackages.clr
+              torchWithRocm
+            ];
+          }
+          ''
+            python -c "
+            import torch
+            import torch.utils._triton as tr
+            print('has_triton:', tr.has_triton())
+            print('hash:', tr.triton_hash_with_backend())
             " && touch $out
           '';
 
