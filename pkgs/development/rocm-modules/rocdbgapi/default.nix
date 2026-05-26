@@ -46,60 +46,69 @@ let
     )
   );
 in
-stdenv.mkDerivation (finalAttrs: {
-  pname = "rocdbgapi";
-  version = sources.rocdbgapi.version;
+stdenv.mkDerivation (
+  finalAttrs:
+  {
+    pname = "rocdbgapi";
+    version = sources.rocdbgapi.version;
 
-  outputs = [
-    "out"
-  ]
-  ++ lib.optionals buildDocs [
-    "doc"
-  ];
+    outputs = [
+      "out"
+    ]
+    ++ lib.optionals buildDocs [
+      "doc"
+    ];
 
-  buildFlags = lib.optionals buildDocs [ "doc" ];
+    buildFlags = lib.optionals buildDocs [ "doc" ];
 
-  src = fetchRocmSrc "rocdbgapi";
+    src = fetchRocmSrc "rocdbgapi";
 
-  nativeBuildInputs = [
-    cmake
-    rocm-cmake
-  ]
-  ++ lib.optionals buildDocs [
-    writableTmpDirAsHomeHook
-    latex
-    doxygen
-    graphviz
-  ];
+    nativeBuildInputs = [
+      cmake
+      rocm-cmake
+    ]
+    ++ lib.optionals buildDocs [
+      writableTmpDirAsHomeHook
+      latex
+      doxygen
+      graphviz
+    ];
 
-  buildInputs = [
-    rocm-comgr
-    rocm-runtime
-    hwdata
-  ];
+    buildInputs = [
+      rocm-comgr
+      rocm-runtime
+      hwdata
+    ];
 
-  cmakeFlags = [
-    "-DPCI_IDS_PATH=${hwdata}/share/hwdata"
-    # Manually define CMAKE_INSTALL_<DIR>
-    # See: https://github.com/NixOS/nixpkgs/pull/197838
-    "-DCMAKE_INSTALL_BINDIR=bin"
-    "-DCMAKE_INSTALL_LIBDIR=lib"
-    "-DCMAKE_INSTALL_INCLUDEDIR=include"
-  ];
+    cmakeFlags = [
+      "-DPCI_IDS_PATH=${hwdata}/share/hwdata"
+      # Manually define CMAKE_INSTALL_<DIR>
+      # See: https://github.com/NixOS/nixpkgs/pull/197838
+      "-DCMAKE_INSTALL_BINDIR=bin"
+      "-DCMAKE_INSTALL_LIBDIR=lib"
+      "-DCMAKE_INSTALL_INCLUDEDIR=include"
+    ];
 
-  postInstall = lib.optionalString buildDocs ''
-    mkdir -p $doc/share/doc/amd-dbgapi/
-    mv $out/share/html/amd-dbgapi $doc/share/doc/amd-dbgapi/html
-    rmdir $out/share/html
-  '';
+    postInstall = lib.optionalString buildDocs ''
+      mkdir -p $doc/share/doc/amd-dbgapi/
+      mv $out/share/html/amd-dbgapi $doc/share/doc/amd-dbgapi/html
+      rmdir $out/share/html
+    '';
 
-  passthru.updateScript = rocmUpdateScript { inherit finalAttrs; };
+    passthru.updateScript = rocmUpdateScript { inherit finalAttrs; };
 
-  meta = {
-    description = "Debugger support for control of execution and inspection state of AMD's GPU architectures";
-    homepage = "https://github.com/ROCm/ROCdbgapi";
-    license = with lib.licenses; [ mit ];
-    teams = [ lib.teams.rocm ];
-    platforms = lib.platforms.linux;
-  };
-})
+    meta = {
+      description = "Debugger support for control of execution and inspection state of AMD's GPU architectures";
+      homepage = "https://github.com/ROCm/ROCdbgapi";
+      license = with lib.licenses; [ mit ];
+      teams = [ lib.teams.rocm ];
+      platforms = lib.platforms.linux;
+    };
+  }
+  # On streams where this component lives inside a monorepo (the preview stream
+  # moved it under rocm-systems/projects/), srcs records a sourceRoot. Absent on
+  # the stable stream, so this is a no-op there.
+  // lib.optionalAttrs (sources.rocdbgapi ? sourceRoot) {
+    sourceRoot = "${finalAttrs.src.name}/${sources.rocdbgapi.sourceRoot}";
+  }
+)

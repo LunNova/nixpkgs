@@ -15,6 +15,15 @@
 # only the last usage makes sense in nixpkgs
 let
   padIfSingle = s: if lib.stringLength s == 1 then "0${s}" else s;
+  # ROCm preview ("therock-7.1x") tags omit the patch component (e.g. "7.10").
+  # Default a missing patch to 0 so ROCM_LIBPATCH_VERSION stays well-formed
+  # (7.2.3 -> 70203 unchanged; 7.10 -> 71000).
+  patchOrZero =
+    v:
+    let
+      p = lib.splitVersion v;
+    in
+    if builtins.length p >= 3 then builtins.elemAt p 2 else "0";
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocm-core";
@@ -29,7 +38,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [ cmake ];
   env = {
-    ROCM_LIBPATCH_VERSION = "${lib.versions.major finalAttrs.version}${padIfSingle (lib.versions.minor finalAttrs.version)}${padIfSingle (lib.versions.patch finalAttrs.version)}";
+    ROCM_LIBPATCH_VERSION = "${lib.versions.major finalAttrs.version}${padIfSingle (lib.versions.minor finalAttrs.version)}${padIfSingle (patchOrZero finalAttrs.version)}";
     BUILD_ID = "nixpkgs-${finalAttrs.env.ROCM_LIBPATCH_VERSION}";
     ROCM_BUILD_ID = "${finalAttrs.env.BUILD_ID}";
   };

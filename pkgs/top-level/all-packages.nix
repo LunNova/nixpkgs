@@ -1959,7 +1959,26 @@ with pkgs;
 
   dvtm-unstable = callPackage ../tools/misc/dvtm/unstable.nix { };
 
-  rocmPackages = recurseIntoAttrs (callPackage ../development/rocm-modules { });
+  # Stable ROCm stream (rocm-7.x tags). Source pins live in
+  # pkgs/development/rocm-modules/srcs/<version>.nix.
+  rocmPackages_7 = recurseIntoAttrs (
+    callPackage ../development/rocm-modules {
+      srcs = ../development/rocm-modules/srcs/7.2.3.nix;
+    }
+  );
+
+  # Preview / "TheRock" stream (therock-7.1x tags, the "+10" version scheme).
+  # Packages without an equivalent tag on this stream fall back to the stable
+  # pins via baseSrcs.
+  rocmPackages_preview = recurseIntoAttrs (
+    callPackage ../development/rocm-modules {
+      srcs = ../development/rocm-modules/srcs/7.13.nix;
+      baseSrcs = ../development/rocm-modules/srcs/7.2.3.nix;
+    }
+  );
+
+  # Default ROCm package set: the stable stream.
+  rocmPackages = rocmPackages_7;
 
   tsm-client-withGui = callPackage ../by-name/ts/tsm-client/package.nix { enableGui = true; };
 

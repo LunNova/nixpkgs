@@ -142,10 +142,7 @@ stdenv.mkDerivation (finalAttrs: {
       patchelf --set-rpath $out/lib:$external/lib:${libPath} $out/{bin/*,lib/*.so*}
     '';
 
-  passthru.updateScript = rocmUpdateScript {
-    inherit finalAttrs;
-    page = "tags";
-  };
+  passthru.updateScript = rocmUpdateScript { inherit finalAttrs; };
 
   meta = {
     description = "MLIR-based convolution and GEMM kernel generator";

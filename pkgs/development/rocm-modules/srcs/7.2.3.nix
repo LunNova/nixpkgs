@@ -3,6 +3,9 @@
 # Data only: version + fetch coordinates. sourceRoot/postFetch live in recipes.
 {
   rocmVersion = "7.2.3";
+  # Tag prefix this stream's tracking packages use on rocm-systems/rocm-libraries.
+  # Stable = "rocm-"; preview ("+10") stream = "therock-". Used by update tooling.
+  tagPrefix = "rocm-";
   packages = {
     amdsmi = {
       version = "7.2.3";

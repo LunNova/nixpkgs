@@ -42,6 +42,30 @@ let
   # Simple case: `src = fetchRocmSrc "<pname>";`
   fetchRocmSrc = pname: fetchFromGitHub (rocmSrcArgs pname);
 
+  # Components that track the ROCm version but have no source on this stream
+  # (recorded by srcs-gen as `brokenPackages`). Mark them broken in the scope so
+  # a preview stream doesn't silently serve the stable version. Empty for the
+  # stable stream, where `markBroken` is the identity (keeps it byte-identical).
+  brokenInStream = srcsData.brokenPackages or [ ];
+  markBroken =
+    scope:
+    if brokenInStream == [ ] then
+      scope
+    else
+      scope.overrideScope (
+        _final: prev:
+        builtins.listToAttrs (
+          map (n: {
+            name = n;
+            value = prev.${n}.overrideAttrs (old: {
+              meta = (old.meta or { }) // {
+                broken = true;
+              };
+            });
+          }) (builtins.filter (n: prev ? ${n}) brokenInStream)
+        )
+      );
+
   outer = lib.makeScope newScope (
     self:
     let
@@ -59,7 +83,11 @@ let
       # `self.callPackage` recipe can read `sources` / `fetchRocmSrc` / `rocmSrcArgs`.
       inherit sources rocmSrcArgs fetchRocmSrc;
 
-      rocmUpdateScript = self.callPackage ./update.nix { };
+      rocmUpdateScript = self.callPackage ./update.nix {
+        tagPrefix = srcsData.tagPrefix or "rocm-";
+        srcsFileName = baseNameOf srcs;
+        minimal = (srcsData.tagPrefix or "rocm-") != "rocm-";
+      };
 
       ## ROCm ##
       llvm = lib.recurseIntoAttrs (
@@ -344,9 +372,10 @@ let
       ''; # Added 2024-3-24
     }
   );
+  base = markBroken outer;
   scopeForArches =
     arches:
-    outer.overrideScope (
+    base.overrideScope (
       _final: prev: {
         clr = prev.clr.override {
           localGpuTargets = arches;
@@ -354,12 +383,12 @@ let
       }
     );
 in
-outer
+base
 // builtins.listToAttrs (
   map (arch: {
     name = arch;
     value = scopeForArches [ arch ];
-  }) outer.clr.gpuTargets
+  }) base.clr.gpuTargets
 )
 // {
   gfx9 = scopeForArches [
