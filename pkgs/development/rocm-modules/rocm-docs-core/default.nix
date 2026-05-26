@@ -1,6 +1,7 @@
 {
   lib,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   gitUpdater,
   buildPythonPackage,
   setuptools,
@@ -24,15 +25,10 @@
 # FIXME: Move to rocmPackages_common
 buildPythonPackage (finalAttrs: {
   pname = "rocm-docs-core";
-  version = "1.34.0";
+  version = sources.rocm-docs-core.version;
   pyproject = true;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-docs-core";
-    rev = "v${finalAttrs.version}";
-    hash = "sha256-dVX+e0nk9/GT0idXNvLwCuN8Fh/r0dWIvqToU9cxKxs=";
-  };
+  src = fetchRocmSrc "rocm-docs-core";
 
   buildInputs = [ setuptools ];
 

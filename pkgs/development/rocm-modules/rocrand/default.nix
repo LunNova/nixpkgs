@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -15,7 +16,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocrand${clr.gpuArchSuffix}";
-  version = "7.2.3";
+  version = sources.rocrand.version;
 
   outputs = [
     "out"
@@ -27,16 +28,7 @@ stdenv.mkDerivation (finalAttrs: {
     "benchmark"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocrand"
-      "shared"
-    ];
-    hash = "sha256-tl++h7LSEXf0jWe007+RIRwYHdB6TKPDpzipj1Emew8=";
-  };
+  src = fetchRocmSrc "rocrand";
   sourceRoot = "${finalAttrs.src.name}/projects/rocrand";
 
   nativeBuildInputs = [

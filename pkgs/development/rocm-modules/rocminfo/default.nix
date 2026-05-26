@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -12,19 +13,10 @@
 }:
 
 stdenv.mkDerivation (finalAttrs: {
-  version = "7.2.3";
+  version = sources.rocminfo.version;
   pname = "rocminfo";
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocminfo"
-      "shared"
-    ];
-    hash = "sha256-0esRBEXVibC2uzyonpc0ABNNHQ2NAWZrBmmg6p1zP0c=";
-  };
+  src = fetchRocmSrc "rocminfo";
   sourceRoot = "${finalAttrs.src.name}/projects/rocminfo";
 
   strictDeps = true;

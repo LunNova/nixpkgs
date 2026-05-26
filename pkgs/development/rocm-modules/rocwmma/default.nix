@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -19,7 +20,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocwmma";
-  version = "7.2.3";
+  version = sources.rocwmma.version;
 
   outputs = [
     "out"
@@ -34,16 +35,7 @@ stdenv.mkDerivation (finalAttrs: {
     "sample"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocwmma"
-      "shared"
-    ];
-    hash = "sha256-eoF8a7zknpgvDOSDzolOrdtszUJ5tC7Ur2sRShiQEO0=";
-  };
+  src = fetchRocmSrc "rocwmma";
   sourceRoot = "${finalAttrs.src.name}/projects/rocwmma";
 
   patches = lib.optionals (buildTests || buildBenchmarks) [

@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -37,7 +38,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocsolver${clr.gpuArchSuffix}";
-  version = "7.2.3";
+  version = sources.rocsolver.version;
 
   outputs = [
     "out"
@@ -49,16 +50,7 @@ stdenv.mkDerivation (finalAttrs: {
     "benchmark"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocsolver"
-      "shared"
-    ];
-    hash = "sha256-n+Y8RheA0UYeSfpvOw5zfwe4VAW5hsKjlCXtBceGhf0=";
-  };
+  src = fetchRocmSrc "rocsolver";
   sourceRoot = "${finalAttrs.src.name}/projects/rocsolver";
 
   nativeBuildInputs = [

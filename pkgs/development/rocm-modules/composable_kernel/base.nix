@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -42,7 +43,7 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   pname = "composable_kernel_base";
-  version = "7.2.3";
+  version = sources.composable_kernel_base.version;
 
   outputs = [
     "out"
@@ -54,16 +55,7 @@ stdenv.mkDerivation (finalAttrs: {
     "example"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/composablekernel"
-      "shared"
-    ];
-    hash = "sha256-Zs6wwPmys1kUlgDD4XzKKw273nH/Ur3HtuYxJjvjDs0=";
-  };
+  src = fetchRocmSrc "composable_kernel_base";
   sourceRoot = "${finalAttrs.src.name}/projects/composablekernel";
 
   nativeBuildInputs = [

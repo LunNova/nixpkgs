@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -40,7 +41,7 @@ in
 # infiniband ib_peer_mem support isn't in the mainline kernel but is carried by some distros
 stdenv.mkDerivation (finalAttrs: {
   pname = "rccl${clr.gpuArchSuffix}";
-  version = "7.2.3";
+  version = sources.rccl.version;
 
   outputs = [
     "out"
@@ -54,12 +55,7 @@ stdenv.mkDerivation (finalAttrs: {
     ./fix_hw_reg_hw_id_gt_gfx10.patch
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rccl";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-A1IQYIDWqu3JLiPQ70G52s1/0ZweQxFlgMUH81qJWmU=";
-  };
+  src = fetchRocmSrc "rccl";
 
   requiredSystemFeatures = [ "big-parallel" ]; # Very resource intensive LTO
 

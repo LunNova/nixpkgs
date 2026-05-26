@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -14,7 +15,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "hiprand";
-  version = "7.2.3";
+  version = sources.hiprand.version;
 
   outputs = [
     "out"
@@ -23,16 +24,7 @@ stdenv.mkDerivation (finalAttrs: {
     "test"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/hiprand"
-      "shared"
-    ];
-    hash = "sha256-bjcwjN1dNukhoDAbiSpATlK6dtAwM8bOJTe3IjhdwwY=";
-  };
+  src = fetchRocmSrc "hiprand";
   sourceRoot = "${finalAttrs.src.name}/projects/hiprand";
 
   nativeBuildInputs = [

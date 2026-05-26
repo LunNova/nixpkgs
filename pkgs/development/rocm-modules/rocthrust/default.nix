@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -15,7 +16,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocthrust";
-  version = "7.2.3";
+  version = sources.rocthrust.version;
 
   outputs = [
     "out"
@@ -27,16 +28,7 @@ stdenv.mkDerivation (finalAttrs: {
     "benchmark"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocthrust"
-      "shared"
-    ];
-    hash = "sha256-wHEgpmBZCYtvp+OyebrRyfoFz3WQyKWfHPrdzQVL8lY=";
-  };
+  src = fetchRocmSrc "rocthrust";
   sourceRoot = "${finalAttrs.src.name}/projects/rocthrust";
 
   nativeBuildInputs = [

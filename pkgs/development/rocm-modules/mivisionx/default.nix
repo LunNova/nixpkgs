@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -40,14 +41,9 @@ stdenv.mkDerivation (finalAttrs: {
         "cpu"
     );
 
-  version = "7.2.3";
+  version = sources.mivisionx.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "MIVisionX";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-LyiPcZi4vU0R+eI/AbYk8ioewuqET5lCtArtPltJ+Gw=";
-  };
+  src = fetchRocmSrc "mivisionx";
 
   patches = [
     ./0001-set-__STDC_CONSTANT_MACROS-to-make-rocAL-compile.patch

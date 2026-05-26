@@ -1,21 +1,17 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmPackages,
   cmake,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocm-bandwidth-test";
-  version = "6.3.3";
+  version = sources.rocm-bandwidth-test.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm_bandwidth_test";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-dHyfYpRB13wUvim152nZ61McZOQ1zUZFx4dUo2vVqZM=";
-  };
+  src = fetchRocmSrc "rocm-bandwidth-test";
 
   nativeBuildInputs = [
     cmake

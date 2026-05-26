@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -42,7 +43,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocmlir${suffix}";
-  version = "7.2.3";
+  version = sources.rocmlir.version;
 
   outputs = [
     "out"
@@ -51,12 +52,7 @@ stdenv.mkDerivation (finalAttrs: {
     "external"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocMLIR";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-0OvQT8pX6GbEqUwuauKGI66IHw8dsnt5mIijnzYyiRc=";
-  };
+  src = fetchRocmSrc "rocmlir";
 
   nativeBuildInputs = [
     clr

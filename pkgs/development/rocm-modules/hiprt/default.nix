@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   cmake,
   clr,
   python3,
@@ -9,14 +10,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "hiprt";
-  version = "3.0.3.a1525e7";
+  version = sources.hiprt.version;
 
-  src = fetchFromGitHub {
-    owner = "GPUOpen-LibrariesAndSDKs";
-    repo = "HIPRT";
-    tag = finalAttrs.version;
-    hash = "sha256-7r7KO+WuXOeQQhYLYpJRrD4ZqVsBOqaD2NGD15CWnoo=";
-  };
+  src = fetchRocmSrc "hiprt";
 
   postPatch = ''
     substituteInPlace contrib/Orochi/contrib/hipew/src/hipew.cpp --replace-fail '"/opt/rocm/hip/lib/' '"${clr}/lib'

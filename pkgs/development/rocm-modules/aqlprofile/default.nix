@@ -3,24 +3,16 @@
   stdenv,
   clr,
   cmake,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "aqlprofile";
-  version = "7.2.3";
+  version = sources.aqlprofile.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/aqlprofile"
-      "shared"
-    ];
-    hash = "sha256-74HjB5Ughu17rSRx9mfCCsPJI4TVyXnT4aU7vIbm7ak=";
-  };
+  src = fetchRocmSrc "aqlprofile";
   sourceRoot = "${finalAttrs.src.name}/projects/aqlprofile";
 
   env.CXXFLAGS = "-DROCP_LD_AQLPROFILE=1";

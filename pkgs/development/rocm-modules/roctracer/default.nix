@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   clr,
@@ -19,7 +20,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "roctracer";
-  version = "7.2.3";
+  version = sources.roctracer.version;
 
   outputs = [
     "out"
@@ -31,16 +32,7 @@ stdenv.mkDerivation (finalAttrs: {
     "test"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/roctracer"
-      "shared"
-    ];
-    hash = "sha256-Ps9b/MMdxXthGV96ZDg0kZGPdmn7Sy5if1a/Fjx2fEE=";
-  };
+  src = fetchRocmSrc "roctracer";
   sourceRoot = "${finalAttrs.src.name}/projects/roctracer";
 
   nativeBuildInputs = [

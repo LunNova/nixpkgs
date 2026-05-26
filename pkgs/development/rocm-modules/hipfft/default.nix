@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -21,7 +22,7 @@
 # Can also use cuFFT
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipfft";
-  version = "7.2.3";
+  version = sources.hipfft.version;
 
   outputs = [
     "out"
@@ -36,17 +37,7 @@ stdenv.mkDerivation (finalAttrs: {
     "sample"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/hipfft"
-      "shared"
-    ];
-    fetchSubmodules = true;
-    hash = "sha256-EtxZuxBPx6trTN9iC7uri2+UR0Eolp919Ry4U1PEqNA=";
-  };
+  src = fetchRocmSrc "hipfft";
   sourceRoot = "${finalAttrs.src.name}/projects/hipfft";
 
   nativeBuildInputs = [

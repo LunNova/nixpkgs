@@ -1,5 +1,6 @@
 {
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   stdenv,
   cmake,
   clr,
@@ -8,13 +9,8 @@
 }:
 stdenv.mkDerivation {
   pname = "mscclpp";
-  version = "unstable-2024-12-13";
-  src = fetchFromGitHub {
-    owner = "microsoft";
-    repo = "mscclpp";
-    rev = "ee75caf365a27b9ab7521cfdda220b55429e5c37";
-    hash = "sha256-/mi9T9T6OIVtJWN3YoEe9az/86rz7BrX537lqaEh3ig=";
-  };
+  version = sources.mscclpp.version;
+  src = fetchRocmSrc "mscclpp";
   nativeBuildInputs = [
     cmake
   ];

@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -15,7 +16,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocprim";
-  version = "7.2.3";
+  version = sources.rocprim.version;
 
   outputs = [
     "out"
@@ -27,16 +28,7 @@ stdenv.mkDerivation (finalAttrs: {
     "benchmark"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocprim"
-      "shared"
-    ];
-    hash = "sha256-e0mZ27OXyblcnXQGv2ex/CvWx9smw6nBbHZIijj7lP8=";
-  };
+  src = fetchRocmSrc "rocprim";
   sourceRoot = "${finalAttrs.src.name}/projects/rocprim";
 
   nativeBuildInputs = [

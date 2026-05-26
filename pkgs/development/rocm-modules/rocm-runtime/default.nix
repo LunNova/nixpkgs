@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   fetchpatch,
   rocmUpdateScript,
   pkg-config,
@@ -17,18 +18,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocm-runtime";
-  version = "7.2.3";
+  version = sources.rocm-runtime.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocr-runtime"
-      "shared"
-    ];
-    hash = "sha256-hcyjOLMtoBX/p6r6R9Bl9635DuvI6rTn1KziHMeyYM0=";
-  };
+  src = fetchRocmSrc "rocm-runtime";
   sourceRoot = "${finalAttrs.src.name}/projects/rocr-runtime";
 
   cmakeBuildType = "RelWithDebInfo";

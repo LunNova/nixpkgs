@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   python3,
@@ -12,14 +13,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocr-debug-agent";
-  version = "7.2.3";
+  version = sources.rocr-debug-agent.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocr_debug_agent";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-w2Zg4kpuKy68DkVGsBTUsjRZoV/Y/Z3Q8s0oSIR3Ask=";
-  };
+  src = fetchRocmSrc "rocr-debug-agent";
 
   nativeBuildInputs = [
     cmake

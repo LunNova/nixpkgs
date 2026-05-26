@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   cmake,
   ninja,
   nix-update-script,
@@ -10,14 +11,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocprof-compute-viewer";
-  version = "0.1.6";
+  version = sources.rocprof-compute-viewer.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocprof-compute-viewer";
-    rev = finalAttrs.version;
-    hash = "sha256-hjwqU5TxV4p2EjGy5haQfQqItVtYMI7i/VIfrKZvqhE=";
-  };
+  src = fetchRocmSrc "rocprof-compute-viewer";
 
   nativeBuildInputs = [
     cmake

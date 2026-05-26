@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -22,7 +23,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocalution";
-  version = "7.2.3";
+  version = sources.rocalution.version;
 
   outputs = [
     "out"
@@ -37,12 +38,7 @@ stdenv.mkDerivation (finalAttrs: {
     "sample"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocALUTION";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-yPM26e8tGNpPScIriAPRb+6OZfdpX4PgE0E9bmc3FkU=";
-  };
+  src = fetchRocmSrc "rocalution";
 
   nativeBuildInputs = [
     cmake

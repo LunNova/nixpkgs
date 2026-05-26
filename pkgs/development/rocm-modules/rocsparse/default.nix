@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   fetchzip,
   rocmUpdateScript,
   cmake,
@@ -20,7 +21,7 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocsparse${clr.gpuArchSuffix}";
-  version = "7.2.3";
+  version = sources.rocsparse.version;
 
   outputs = [
     "out"
@@ -32,16 +33,7 @@ stdenv.mkDerivation (finalAttrs: {
     "benchmark"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocsparse"
-      "shared"
-    ];
-    hash = "sha256-hkfBTcLig39al2w8zFTSQQnouaou9wlD6VlvIyFTNMg=";
-  };
+  src = fetchRocmSrc "rocsparse";
   sourceRoot = "${finalAttrs.src.name}/projects/rocsparse";
 
   nativeBuildInputs = [

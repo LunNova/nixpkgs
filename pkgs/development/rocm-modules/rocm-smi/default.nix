@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   pkg-config,
   libdrm,
@@ -11,18 +12,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocm-smi";
-  version = "7.2.3";
+  version = sources.rocm-smi.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocm-smi-lib"
-      "shared"
-    ];
-    hash = "sha256-Si8SbeVKUBtqk6h2QJ9ssQV68bLq6TvESrYXJuArHd8=";
-  };
+  src = fetchRocmSrc "rocm-smi";
   sourceRoot = "${finalAttrs.src.name}/projects/rocm-smi-lib";
 
   propagatedBuildInputs = [

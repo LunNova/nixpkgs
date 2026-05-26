@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -9,14 +10,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "half";
-  version = "7.2.3";
+  version = sources.half.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "half";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-If9O5BEeymsLN+C0drZsPSxEWXpJTxeDBGNHNXSumm4=";
-  };
+  src = fetchRocmSrc "half";
 
   nativeBuildInputs = [
     cmake

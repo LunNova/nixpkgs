@@ -2,7 +2,8 @@
   lib,
   stdenv,
   callPackage,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   fetchpatch,
   rocmUpdateScript,
   makeWrapper,
@@ -70,7 +71,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "clr";
-  version = "7.2.3";
+  version = sources.clr.version;
 
   outputs = [
     "out"
@@ -80,16 +81,7 @@ stdenv.mkDerivation (finalAttrs: {
   __structuredAttrs = true;
   strictDeps = true;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/clr"
-      "shared"
-    ];
-    hash = "sha256-n8yWWDxE36m2NN0cmqHXQy5omYPiYoqnaNbqWm63q3E=";
-  };
+  src = fetchRocmSrc "clr";
   sourceRoot = "${finalAttrs.src.name}/projects/clr";
 
   nativeBuildInputs = [

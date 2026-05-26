@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -19,7 +20,7 @@
 # This can also use cuSPARSE as a backend instead of rocSPARSE
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipsparse";
-  version = "7.2.3";
+  version = sources.hipsparse.version;
 
   outputs = [
     "out"
@@ -31,16 +32,7 @@ stdenv.mkDerivation (finalAttrs: {
     "sample"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/hipsparse"
-      "shared"
-    ];
-    hash = "sha256-E1chG+giFtf02fjutoV4yM2XvrQKjgXRSvxs0NBBkvI=";
-  };
+  src = fetchRocmSrc "hipsparse";
   sourceRoot = "${finalAttrs.src.name}/projects/hipsparse";
 
   nativeBuildInputs = [

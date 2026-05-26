@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -17,7 +18,7 @@
 # CUB can also be used as a backend instead of rocPRIM.
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipcub";
-  version = "7.2.3";
+  version = sources.hipcub.version;
 
   outputs = [
     "out"
@@ -29,16 +30,7 @@ stdenv.mkDerivation (finalAttrs: {
     "benchmark"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/hipcub"
-      "shared"
-    ];
-    hash = "sha256-geO6LS1osKAlmVRtiZ6keqFHsJccyB7pRZdWPEkue2M=";
-  };
+  src = fetchRocmSrc "hipcub";
   sourceRoot = "${finalAttrs.src.name}/projects/hipcub";
 
   nativeBuildInputs = [

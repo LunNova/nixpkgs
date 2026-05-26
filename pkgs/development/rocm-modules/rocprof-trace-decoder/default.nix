@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmPackages,
   cmake,
   python3,
@@ -11,19 +12,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocprof-trace-decoder";
-  version = "0.1.7";
+  version = sources.rocprof-trace-decoder.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    # No tags (yet?)
-    rev = "feeca99950c590e0b8228733405c4a1a10fa4773";
-    sparseCheckout = [
-      "projects/rocprof-trace-decoder"
-      "shared"
-    ];
-    hash = "sha256-aJhPiZf5380jj2IeCipgcTEQYogr5R19UnVwKRGnkxo=";
-  };
+  src = fetchRocmSrc "rocprof-trace-decoder";
 
   sourceRoot = "${finalAttrs.src.name}/projects/rocprof-trace-decoder";
 

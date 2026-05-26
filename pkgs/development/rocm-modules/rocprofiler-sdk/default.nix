@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   cmake,
   ninja,
   pkg-config,
@@ -46,23 +47,14 @@
 # rocprofiler-sdk is the home of rocprofv3
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocprofiler-sdk";
-  version = "7.2.3";
+  version = sources.rocprofiler-sdk.version;
 
   outputs = [
     "out"
     "dev"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-SQjV1FnAgnK1LS5SiApgfvDSjB3AKpucja+PBZSmLvQ=";
-    fetchSubmodules = true;
-    sparseCheckout = [
-      "projects/rocprofiler-sdk"
-    ];
-  };
+  src = fetchRocmSrc "rocprofiler-sdk";
   sourceRoot = "${finalAttrs.src.name}/projects/rocprofiler-sdk";
 
   strictDeps = true;

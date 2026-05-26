@@ -1,24 +1,16 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "hip-common";
-  version = "7.2.3";
+  version = sources.hip-common.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/hip"
-      "shared"
-    ];
-    hash = "sha256-orfTXKjcZJ5E73cmXEyltZVYhCQo8FLExVHM3J/rqUM=";
-  };
+  src = fetchRocmSrc "hip-common";
   sourceRoot = "${finalAttrs.src.name}/projects/hip";
 
   dontConfigure = true;

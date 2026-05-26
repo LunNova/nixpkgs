@@ -2,6 +2,8 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   pkg-config,
@@ -12,26 +14,12 @@
 }:
 
 let
-  esmi_ib_src = fetchFromGitHub {
-    owner = "amd";
-    repo = "esmi_ib_library";
-    rev = "esmi_pkg_ver-4.2";
-    hash = "sha256-czF9ezkAO0PuDkXh8y639AcOZH+KVcWiXPX74H5W/nw=";
-  };
+  esmi_ib_src = fetchFromGitHub sources.amdsmi.extraSrcs.esmi_ib;
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "amdsmi";
-  version = "7.2.3";
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/amdsmi"
-      "shared"
-    ];
-    hash = "sha256-TFi+3txemvV6K827e8S3hZOd9jcj4Qzop6V9CdKrpLg=";
-  };
+  version = sources.amdsmi.version;
+  src = fetchRocmSrc "amdsmi";
   sourceRoot = "${finalAttrs.src.name}/projects/amdsmi";
 
   postPatch = ''

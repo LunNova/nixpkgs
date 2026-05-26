@@ -1,6 +1,7 @@
 {
   lib,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   fetchpatch,
   rocmUpdateScript,
   buildPythonPackage,
@@ -18,19 +19,10 @@
 
 buildPythonPackage (finalAttrs: {
   pname = "tensile";
-  version = "7.2.3";
+  version = sources.tensile.version;
   pyproject = true;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "shared/tensile"
-      "shared"
-    ];
-    hash = "sha256-sYudPiEPGeZLmf6+3XfQDZqRXiKgRsGPucApzYwlGV8=";
-  };
+  src = fetchRocmSrc "tensile";
   sourceRoot = "${finalAttrs.src.name}/shared/tensile";
 
   # TODO: It should be possible to run asm caps test ONCE for all supported arches

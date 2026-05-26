@@ -6,7 +6,8 @@
   overrideCC,
   lndir,
   rocm-device-libs,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   runCommand,
   symlinkJoin,
   rdfind,
@@ -36,9 +37,9 @@
 }:
 
 let
-  version = "7.2.3";
+  version = sources.llvm.version;
   # major version of this should be the clang version ROCm forked from
-  rocmLlvmVersion = "22.0.0-rocm";
+  rocmLlvmVersion = sources.llvm.rocmLlvmVersion;
   # llvmPackages_base version should match rocmLlvmVersion
   # so libllvm's bitcode is compatible with the built toolchain
   llvmPackages_base = llvmPackages_22;
@@ -114,12 +115,7 @@ let
       ln -s $out $out/x86_64-unknown-linux-gnu
     '';
   };
-  llvmSrc = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "llvm-project";
-    rev = "rocm-${version}";
-    hash = "sha256-TwFvQimbax2E37ZC/52lNkHXCgyBNfSGDBaqmas2x/s=";
-  };
+  llvmSrc = fetchRocmSrc "llvm";
   llvmMajorVersion = lib.versions.major rocmLlvmVersion;
   # An llvmPackages (pkgs/development/compilers/llvm/) built from ROCm LLVM's source tree
   llvmPackagesRocm = llvmPackages_base.override (_old: {

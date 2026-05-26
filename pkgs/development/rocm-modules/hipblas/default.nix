@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -24,7 +25,7 @@
 # Can also use cuBLAS
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipblas";
-  version = "7.2.3";
+  version = sources.hipblas.version;
 
   outputs = [
     "out"
@@ -39,16 +40,7 @@ stdenv.mkDerivation (finalAttrs: {
     "sample"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/hipblas"
-      "shared"
-    ];
-    hash = "sha256-1+aNDotV5liHBnGddmWtaKYCcsWPxQD3AoEubnghV0M=";
-  };
+  src = fetchRocmSrc "hipblas";
   sourceRoot = "${finalAttrs.src.name}/projects/hipblas";
 
   postPatch = ''

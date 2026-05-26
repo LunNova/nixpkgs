@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   pkg-config,
   texinfo,
@@ -23,14 +24,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocgdb";
-  version = "7.2.3";
+  version = sources.rocgdb.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "ROCgdb";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-oml/HLExnnjh7+axeWPZRWecpwK2BnzVOaGvXYhrxKs=";
-  };
+  src = fetchRocmSrc "rocgdb";
 
   nativeBuildInputs = [
     pkg-config

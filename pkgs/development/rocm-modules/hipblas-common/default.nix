@@ -2,24 +2,16 @@
   lib,
   stdenv,
   cmake,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocm-cmake,
   rocmUpdateScript,
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipblas-common";
-  version = "7.2.3";
+  version = sources.hipblas-common.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/hipblas-common"
-      "shared"
-    ];
-    hash = "sha256-83LgS4I1fMSaNtWdVFf1qhYRMT7a9jVzO3XpUzEipXg=";
-  };
+  src = fetchRocmSrc "hipblas-common";
   sourceRoot = "${finalAttrs.src.name}/projects/hipblas-common";
 
   nativeBuildInputs = [

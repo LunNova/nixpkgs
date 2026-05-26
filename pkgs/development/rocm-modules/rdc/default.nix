@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   pkg-config,
@@ -49,7 +50,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "rdc";
-  version = "7.2.3";
+  version = sources.rdc.version;
 
   outputs = [
     "out"
@@ -61,16 +62,7 @@ stdenv.mkDerivation (finalAttrs: {
     "test"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rdc"
-      "shared"
-    ];
-    hash = "sha256-SmySauRxFnEQJVTjGYf4TpmQclTwZG2RZrk3u6ko5Qo=";
-  };
+  src = fetchRocmSrc "rdc";
   sourceRoot = "${finalAttrs.src.name}/projects/rdc";
 
   patches = [

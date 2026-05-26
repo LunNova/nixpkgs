@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   llvm,
@@ -12,14 +13,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipify";
-  version = "7.2.3";
+  version = sources.hipify.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "HIPIFY";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-LC0lnYetV7RPVw92zew6za6bDH4zmnERXUM4MVaRVtc=";
-  };
+  src = fetchRocmSrc "hipify";
 
   strictDeps = true;
 

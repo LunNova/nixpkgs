@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -10,14 +11,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipfort";
-  version = "7.2.3";
+  version = sources.hipfort.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "hipfort";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-XaB4jauCN41tgD1YHHA2td/yckwfMBemBe/iL0SCxQo=";
-  };
+  src = fetchRocmSrc "hipfort";
 
   nativeBuildInputs = [
     cmake

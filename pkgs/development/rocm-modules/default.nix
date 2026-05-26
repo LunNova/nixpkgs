@@ -3,15 +3,45 @@
   config,
   callPackage,
   newScope,
+  fetchFromGitHub,
   boost179,
   opencv,
   python3Packages,
   openmpi,
   stdenv,
   pkgs,
+  # Per-stream source pins: one file per package-set version under ./srcs.
+  # See ./srcs/7.2.3.nix for the schema. The default keeps the stable stream.
+  srcs ? ./srcs/7.2.3.nix,
+  # Fallback base for dev/preview streams: packages omitted from `srcs` (e.g.
+  # outliers with no equivalent tag on that stream) inherit their pin from here.
+  baseSrcs ? ./srcs/7.2.3.nix,
 }:
 
 let
+  srcsData = import srcs;
+  # Merged per-package source pins; the stream's own file wins over the base.
+  sources = (import baseSrcs).packages // srcsData.packages;
+
+  # Build the fetchFromGitHub args for a package from its srcs entry. Recipes
+  # needing extra fetch options compose with the result, e.g.:
+  #   src = fetchFromGitHub (rocmSrcArgs "aotriton" // { postFetch = ''...''; });
+  rocmSrcArgs =
+    pname:
+    let
+      s = sources.${pname} or (throw "rocm-modules: no source entry for '${pname}' in ${toString srcs}");
+    in
+    {
+      inherit (s) owner repo hash;
+    }
+    // (if s ? tag then { inherit (s) tag; } else { inherit (s) rev; })
+    // lib.optionalAttrs (s ? sparseCheckout) { inherit (s) sparseCheckout; }
+    // lib.optionalAttrs (s ? fetchSubmodules) { inherit (s) fetchSubmodules; }
+    // lib.optionalAttrs (s ? leaveDotGit) { inherit (s) leaveDotGit; };
+
+  # Simple case: `src = fetchRocmSrc "<pname>";`
+  fetchRocmSrc = pname: fetchFromGitHub (rocmSrcArgs pname);
+
   outer = lib.makeScope newScope (
     self:
     let
@@ -25,6 +55,10 @@ let
       inherit rocmClangStdenv;
       stdenv = rocmClangStdenv;
 
+      # Per-stream source pins + fetch helpers, injected so every
+      # `self.callPackage` recipe can read `sources` / `fetchRocmSrc` / `rocmSrcArgs`.
+      inherit sources rocmSrcArgs fetchRocmSrc;
+
       rocmUpdateScript = self.callPackage ./update.nix { };
 
       ## ROCm ##
@@ -32,7 +66,7 @@ let
         callPackage ./llvm/default.nix {
           # rocm-device-libs is used for .src only
           # otherwise would cause infinite recursion
-          inherit (self) rocm-device-libs;
+          inherit (self) rocm-device-libs sources fetchRocmSrc;
         }
       );
       inherit (self.llvm) rocm-toolchain clang openmp;
@@ -52,18 +86,28 @@ let
       rocminfo = self.callPackage ./rocminfo { stdenv = origStdenv; };
 
       amdsmi = pyPackages.callPackage ./amdsmi {
-        inherit (self) rocmUpdateScript;
+        inherit (self)
+          rocmUpdateScript
+          sources
+          fetchRocmSrc
+          ;
       };
 
       rocm-smi = pyPackages.callPackage ./rocm-smi {
-        inherit (self) rocmUpdateScript;
+        inherit (self)
+          rocmUpdateScript
+          sources
+          fetchRocmSrc
+          ;
       };
 
       aqlprofile = self.callPackage ./aqlprofile { };
 
       rdc = self.callPackage ./rdc { };
 
-      rocm-docs-core = python3Packages.callPackage ./rocm-docs-core { };
+      rocm-docs-core = python3Packages.callPackage ./rocm-docs-core {
+        inherit (self) sources fetchRocmSrc;
+      };
 
       hip-common = self.callPackage ./hip-common { };
 
@@ -131,6 +175,8 @@ let
         inherit (self)
           rocmUpdateScript
           clr
+          sources
+          fetchRocmSrc
           ;
       };
 

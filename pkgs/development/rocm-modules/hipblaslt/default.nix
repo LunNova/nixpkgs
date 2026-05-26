@@ -2,6 +2,8 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  rocmSrcArgs,
+  sources,
   cmake,
   rocm-cmake,
   rocm-smi,
@@ -70,22 +72,17 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "hipblaslt${clr.gpuArchSuffix}";
-  version = "7.2.3";
+  version = sources.hipblaslt.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-+xMmPKb32NP9U35dHCXfXWwa6exfiL5TezfXERVDfe4=";
-    sparseCheckout = [
-      "projects/hipblaslt"
-      "shared"
-    ];
-    # Compress the 5ish GiB of yaml files so this .src is under output size limit
-    postFetch = ''
-      find $out -name '*.yaml' -path '*/Tensile/Logic/*' -exec ${lib.getExe zstd} --rm {} \;
-    '';
-  };
+  src = fetchFromGitHub (
+    rocmSrcArgs "hipblaslt"
+    // {
+      # Compress the 5ish GiB of yaml files so this .src is under output size limit
+      postFetch = ''
+        find $out -name '*.yaml' -path '*/Tensile/Logic/*' -exec ${lib.getExe zstd} --rm {} \;
+      '';
+    }
+  );
   sourceRoot = "${finalAttrs.src.name}/projects/hipblaslt";
   env.CXX = compiler;
   env.CFLAGS = cFlags;

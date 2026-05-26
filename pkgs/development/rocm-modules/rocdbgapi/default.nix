@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   rocm-cmake,
@@ -47,7 +48,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocdbgapi";
-  version = "7.2.3";
+  version = sources.rocdbgapi.version;
 
   outputs = [
     "out"
@@ -58,12 +59,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildFlags = lib.optionals buildDocs [ "doc" ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "ROCdbgapi";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-KqvhwfIv8pbr8WbnfAKl71fg5yxbwYcpzZcGU9Htdkc=";
-  };
+  src = fetchRocmSrc "rocdbgapi";
 
   nativeBuildInputs = [
     cmake

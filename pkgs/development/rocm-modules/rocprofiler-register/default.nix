@@ -7,7 +7,8 @@
   elfutils,
   glog,
   fmt,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   clang,
@@ -17,18 +18,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocprofiler-register";
-  version = "7.2.3";
+  version = sources.rocprofiler-register.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocprofiler-register"
-      "shared"
-    ];
-    hash = "sha256-XhxED3LHIjxBcSVyyEC3pgg0fyKyfKtHkF7umExSboM=";
-  };
+  src = fetchRocmSrc "rocprofiler-register";
   sourceRoot = "${finalAttrs.src.name}/projects/rocprofiler-register";
 
   patches = [

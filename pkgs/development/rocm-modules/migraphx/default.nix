@@ -2,7 +2,8 @@
   lib,
   stdenv,
   callPackage,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   pkg-config,
   cmake,
@@ -59,7 +60,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "migraphx";
-  version = "7.2.3";
+  version = sources.migraphx.version;
 
   outputs = [
     "out"
@@ -71,12 +72,7 @@ stdenv.mkDerivation (finalAttrs: {
     "test"
   ];
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "AMDMIGraphX";
-    rev = "rocm-${finalAttrs.version}";
-    hash = "sha256-raYsrMZASdEIxSstk14b38q9dt5EOq3rKidoFvobnxk=";
-  };
+  src = fetchRocmSrc "migraphx";
 
   nativeBuildInputs = [
     pkg-config

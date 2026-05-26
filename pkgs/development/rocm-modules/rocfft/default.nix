@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   cmake,
   clr,
@@ -20,18 +21,9 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocfft${clr.gpuArchSuffix}";
-  version = "7.2.3";
+  version = sources.rocfft.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocfft"
-      "shared"
-    ];
-    hash = "sha256-RjWMzLX0nBA8ClweJ8YgRTn+Nzt/VUkOoSw3jMQ3IWg=";
-  };
+  src = fetchRocmSrc "rocfft";
   sourceRoot = "${finalAttrs.src.name}/projects/rocfft";
 
   nativeBuildInputs = [

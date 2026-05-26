@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   fetchpatch,
   rocmUpdateScript,
   cmake,
@@ -40,18 +41,9 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocblas${clr.gpuArchSuffix}";
-  version = "7.2.3";
+  version = sources.rocblas.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocblas"
-      "shared"
-    ];
-    hash = "sha256-wrjcr2ASSF+bk5atjvKfIYSbg+vevo/a2W2ca9Nft/4=";
-  };
+  src = fetchRocmSrc "rocblas";
   sourceRoot = "${finalAttrs.src.name}/projects/rocblas";
 
   outputs = [ "out" ] ++ lib.optional buildBenchmarks "benchmark" ++ lib.optional buildTests "test";

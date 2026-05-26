@@ -2,6 +2,8 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  rocmSrcArgs,
+  sources,
   cmake,
   rocm-cmake,
   clr,
@@ -37,24 +39,22 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "aotriton${lib.optionalString (!anySupportedTargets) "-shim"}";
-  version = "0.11.1b";
+  version = sources.aotriton.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "aotriton";
-    tag = finalAttrs.version;
-    hash = "sha256-F7JjyS+6gMdCpOFLldTsNJdVzzVwd6lwW7+V8ZOZfig=";
-    leaveDotGit = true;
-    # fetch all submodules except unused triton submodule that is ~500MB
-    postFetch = ''
-      cd $out
-      git reset --hard HEAD
-      for submodule in $(git config --file .gitmodules --get-regexp path | awk '{print $2}' | grep '^third_party/' | grep -v '^third_party/triton$'); do
-        git submodule update --init --recursive "$submodule"
-      done
-      find "$out" -name .git -print0 | xargs -0 rm -rf
-    '';
-  };
+  src = fetchFromGitHub (
+    rocmSrcArgs "aotriton"
+    // {
+      # fetch all submodules except unused triton submodule that is ~500MB
+      postFetch = ''
+        cd $out
+        git reset --hard HEAD
+        for submodule in $(git config --file .gitmodules --get-regexp path | awk '{print $2}' | grep '^third_party/' | grep -v '^third_party/triton$'); do
+          git submodule update --init --recursive "$submodule"
+        done
+        find "$out" -name .git -print0 | xargs -0 rm -rf
+      '';
+    }
+  );
 
   cmakeBuildType = "RelWithDebInfo";
   separateDebugInfo = true;

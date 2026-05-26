@@ -2,7 +2,8 @@
   lib,
   stdenv,
   callPackage,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   fetchpatch,
   fetchurl,
   runCommand,
@@ -44,7 +45,7 @@
 let
   # FIXME: cmake files need patched to include this properly
   cFlags = "-Wno-documentation-pedantic --offload-compress -I${hipblas-common}/include -I${hipblas}/include -I${roctracer}/include -I${nlohmann_json}/include -I${sqlite.dev}/include -I${rocrand}/include";
-  version = "7.2.3";
+  version = sources.miopen.version;
 
   # Targets outside this list will get
   # error: use of undeclared identifier 'CK_BUFFER_RESOURCE_3RD_DWORD'
@@ -121,17 +122,7 @@ stdenv.mkDerivation (finalAttrs: {
   inherit version;
   pname = "miopen";
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-libraries";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/miopen"
-      "shared"
-    ];
-    fetchSubmodules = true;
-    hash = "sha256-plZpBTbEBVMa5CasjfbUsu45xP/BYstrEpWKK2H7QQ4=";
-  };
+  src = fetchRocmSrc "miopen";
   sourceRoot = "${finalAttrs.src.name}/projects/miopen";
 
   env.CFLAGS = cFlags;

@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  fetchRocmSrc,
+  sources,
   rocmUpdateScript,
   symlinkJoin,
   cmake,
@@ -44,19 +45,9 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "rocprofiler";
-  version = "7.2.3";
+  version = sources.rocprofiler.version;
 
-  src = fetchFromGitHub {
-    owner = "ROCm";
-    repo = "rocm-systems";
-    rev = "rocm-${finalAttrs.version}";
-    sparseCheckout = [
-      "projects/rocprofiler"
-      "shared"
-    ];
-    fetchSubmodules = true;
-    hash = "sha256-Wo0pymD8LsrdczdIUEEVe5x2Id//KIFkh40kliAQgWo=";
-  };
+  src = fetchRocmSrc "rocprofiler";
   sourceRoot = "${finalAttrs.src.name}/projects/rocprofiler";
 
   nativeBuildInputs = [
