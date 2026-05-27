@@ -17,7 +17,7 @@
   ];
   packages = {
     amdsmi = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -34,7 +34,7 @@
       };
     };
     aqlprofile = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -45,7 +45,7 @@
       hash = "sha256-z03HNx7TOB6V0eaVjkeir9ukvHgc99fSvbGrSqWx4DM=";
     };
     clr = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -56,7 +56,7 @@
       hash = "sha256-CpKFVpLedYY9FtfOFR2bypcrsL+B1l2CkAW5s01ZiVw=";
     };
     composable_kernel_base = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -67,14 +67,14 @@
       hash = "sha256-TvFNVmODOxpfMeubVeJivhKWtlmE/0SOMB+dOTVJGBM=";
     };
     half = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "half";
       rev = "therock-7.13";
       hash = "sha256-If9O5BEeymsLN+C0drZsPSxEWXpJTxeDBGNHNXSumm4=";
     };
     hip-common = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -85,7 +85,7 @@
       hash = "sha256-LL0kFJPZi+0PXHRcX0oyJWpRL4ZlfoZJdh9ibQ1Q3QE=";
     };
     hipblas = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -96,7 +96,7 @@
       hash = "sha256-BTIco9M86gtyk0WsZVlHOAWjvcwg/xUHs6fr9f1AJsE=";
     };
     hipblas-common = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -107,7 +107,7 @@
       hash = "sha256-rHGXUqQJvPZfz6+V8JjyaUBWIggAhSYyAHkS4wmIfrg=";
     };
     hipcub = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -118,7 +118,7 @@
       hash = "sha256-h7W/2n0ByuhxHUcnwMEwMliGTKxlf8wu+zXFtSgTKMg=";
     };
     hipfft = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -130,14 +130,14 @@
       hash = "sha256-Ij3+ytSyI1RiIapJ1ixeD8Cvj8nHKeDTrO9Mfp3QQ8c=";
     };
     hipify = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "HIPIFY";
       rev = "therock-7.13";
       hash = "sha256-P6xoQfXuCdLZMe1msIrjBF4LsrBihRQNwHczQ/KIxwM=";
     };
     hiprand = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -148,7 +148,7 @@
       hash = "sha256-t60P4tIEigix1Lns6D6OcMvRFOKO2vsjCqadM3VNu8I=";
     };
     hipsolver = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -159,7 +159,7 @@
       hash = "sha256-OQw4gujyvMJviVBbj09Xr7WTNlOL9u2cY3x0PeHnAUM=";
     };
     hipsparse = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -170,15 +170,16 @@
       hash = "sha256-+cKR+nfrv1pztN1EfG8enJFGEDlMC/KurFSVLwb4b4E=";
     };
     llvm = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "llvm-project";
       rev = "therock-7.13";
       hash = "sha256-HT90H9iYf1gAnVFnxIVA+umB3WAlJ4MrszFcq3m8evA=";
-      rocmLlvmVersion = "22.0.0-rocm";
+      # therock-7.13's llvm-project fork is LLVM 23 (stable rocm-7.x is LLVM 22).
+      rocmLlvmVersion = "23.0.0-rocm";
     };
     miopen = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -190,7 +191,7 @@
       hash = "sha256-dt4Ro36YLu+M652yxp09QjtXv0YwAGc7sXYFRi3hOBE=";
     };
     rccl = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -202,7 +203,7 @@
       hash = "sha256-stbhEylJIS3WesdYFWUIOxlVXozmP6ll5Vu66UhAu0E=";
     };
     rdc = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -213,7 +214,7 @@
       hash = "sha256-g+ftHskR4GR7UMGxadAN6jP86BNuTV7UbNz7ZdJEdNo=";
     };
     rocblas = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -224,7 +225,7 @@
       hash = "sha256-DZgH9eboIt1n7EBuDATHCEYflyaLbpf1G+MSPpqHb/k=";
     };
     rocdbgapi = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -236,7 +237,7 @@
       hash = "sha256-gRv4KFMXh3NCVOBVFZ1wbcRvNN7vIKMmlZl4+ZGSpX8=";
     };
     rocfft = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -247,21 +248,21 @@
       hash = "sha256-1qIQPlgV+O/EHYsxj/DUuQu10d0W7T32bZstiYH19WM=";
     };
     rocgdb = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "ROCgdb";
       rev = "therock-7.13";
       hash = "sha256-Ixg6Y/STxokPL1b2N/FGoF3Z1pyPihFTKgxkl5huWA0=";
     };
     rocm-cmake = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-cmake";
       rev = "therock-7.13";
       hash = "sha256-im6UO0crO0Jc27zkTsdvJYPHit8IGlw/vDPGrmP1XqY=";
     };
     rocm-core = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -272,7 +273,7 @@
       hash = "sha256-VyPfiYDtQBvcVqNCuWWRBX1YmJ/blM1nk8Ax+fHif7Y=";
     };
     rocm-runtime = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -283,7 +284,7 @@
       hash = "sha256-EtF8pmL5K4a23RMls+Ky82C/jjOM2GHeT5Y5c9u0w2c=";
     };
     rocm-smi = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -294,7 +295,7 @@
       hash = "sha256-StV9J8OqvfD41y+hzDczXfwt1aPHvLXVAqD1ka2TPhI=";
     };
     rocminfo = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -305,7 +306,7 @@
       hash = "sha256-AFDYMrKmCBbMAJBaXLzeRxbcMKEMlpOxqNjsGf8gkx8=";
     };
     rocprim = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -316,7 +317,7 @@
       hash = "sha256-9ks3RcM2EGZvbw9+LDjz9X8C+PaMHDK0pZTEKiQTkGs=";
     };
     rocprofiler = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -328,7 +329,7 @@
       hash = "sha256-SwcovAnCLk4AoY2rKUcK0hTHUhayhVD4UpyJyJa/uD4=";
     };
     rocprofiler-register = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -339,7 +340,7 @@
       hash = "sha256-MTYHsjtmaaWRsNdUmnSMYXt8eK6iRoF2vcf6gbGoCnE=";
     };
     rocprofiler-sdk = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -350,7 +351,7 @@
       hash = "sha256-XkSw1foepep630xhsqjjwSKyn1BAIlODrxl9LtAAzIE=";
     };
     rocr-debug-agent = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -362,7 +363,7 @@
       hash = "sha256-P1OZgKw3Cpamt2m7uLUNk4BFnx9E3+XxM4/tCrdoK4M=";
     };
     rocrand = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -373,7 +374,7 @@
       hash = "sha256-W6T5cjnIUm50M3TqeYKhWrOTf8NH0F2NqyXUbm9caEY=";
     };
     rocsolver = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -384,7 +385,7 @@
       hash = "sha256-0LBJbxWgqm5kCuOPD65+ittT9iJ9OW9Kbz8DFm01Y18=";
     };
     rocsparse = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -395,7 +396,7 @@
       hash = "sha256-odDgHfKScxMRohFWR46yfxFgvbdjSM+n2GACoBCT2uY=";
     };
     rocthrust = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -406,7 +407,7 @@
       hash = "sha256-T7eTtEl+6IlUtgrzRbr1oEjV3KEsjAWpE3XRhpJJtWo=";
     };
     roctracer = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-systems";
       rev = "therock-7.13";
@@ -417,7 +418,7 @@
       hash = "sha256-G8sT212v6hgfj5B/5t42JflIzWNvpvte7vialxMm0ZA=";
     };
     rocwmma = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";
@@ -428,7 +429,7 @@
       hash = "sha256-hdoz/P9uY5h+63oR8iM71tk9srk9phutY5HR+mEwofU=";
     };
     tensile = {
-      version = "7.13";
+      version = "7.13.0";
       owner = "ROCm";
       repo = "rocm-libraries";
       rev = "therock-7.13";

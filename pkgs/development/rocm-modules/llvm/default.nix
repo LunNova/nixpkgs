@@ -1,8 +1,10 @@
 {
   lib,
   stdenv,
-  # LLVM version closest to ROCm fork to override
+  # LLVM versions closest to the ROCm forks; the right one is picked per stream
+  # by the major of rocmLlvmVersion (stable = 22, preview/therock-7.1x = 23).
   llvmPackages_22,
+  llvmPackages_git,
   overrideCC,
   lndir,
   rocm-device-libs,
@@ -41,12 +43,33 @@ let
   # major version of this should be the clang version ROCm forked from
   rocmLlvmVersion = sources.llvm.rocmLlvmVersion;
   # llvmPackages_base version should match rocmLlvmVersion
-  # so libllvm's bitcode is compatible with the built toolchain
-  llvmPackages_base = llvmPackages_22;
-  llvmPackagesNoBintools = llvmPackages_base.override {
-    bootBintools = null;
-    bootBintoolsNoLibc = null;
-  };
+  # so libllvm's bitcode is compatible with the built toolchain, and so the
+  # nixpkgs patch set matches the ROCm fork's LLVM major (therock-7.13 = LLVM 23).
+  llvmPackages_base =
+    if lib.versions.major rocmLlvmVersion == "23" then llvmPackages_git else llvmPackages_22;
+  # Extra cmake flags for every llvm we build (base bootstrap + ROCm fork).
+  # LLVM 23 uses CMake target_precompile_headers; the shared PCH is built at -O3
+  # but some targets compile TUs at -O2, so clang rejects the PCH
+  # ("OptimizationLevel differs in precompiled file"). LLVM_ENABLE_PCH=OFF does
+  # not disable it, so use CMake's own kill switch.
+  llvmDevExtraCmakeFlags = lib.optionals (lib.versions.major rocmLlvmVersion == "23") [
+    (lib.cmakeBool "CMAKE_DISABLE_PRECOMPILE_HEADERS" true)
+  ];
+  llvmPackagesNoBintools =
+    let
+      noBin = llvmPackages_base.override {
+        bootBintools = null;
+        bootBintoolsNoLibc = null;
+      };
+    in
+    if llvmDevExtraCmakeFlags == [ ] then
+      noBin
+    else
+      noBin.overrideScope (
+        _final: prev: {
+          libllvm = prev.libllvm.override { devExtraCmakeFlags = llvmDevExtraCmakeFlags; };
+        }
+      );
 
   stdenvToBuildRocmLlvm =
     if withLibcxx then
@@ -118,19 +141,23 @@ let
   llvmSrc = fetchRocmSrc "llvm";
   llvmMajorVersion = lib.versions.major rocmLlvmVersion;
   # An llvmPackages (pkgs/development/compilers/llvm/) built from ROCm LLVM's source tree
-  llvmPackagesRocm = llvmPackages_base.override (_old: {
-    stdenv = stdenvToBuildRocmLlvm;
-
-    # not setting gitRelease = because that causes patch selection logic to use git patches
-    # ROCm LLVM is closer to 20 official
-    # gitRelease = {}; officialRelease = null;
-    officialRelease = { }; # Set but empty because we're overriding everything from it.
-    # this version determines which patches are applied
-    version = rocmLlvmVersion;
-    src = llvmSrc;
-    monorepoSrc = llvmSrc;
-    doCheck = false;
-  });
+  llvmPackagesRocm = llvmPackages_base.override (
+    _old:
+    {
+      stdenv = stdenvToBuildRocmLlvm;
+      # this version determines which patches are applied
+      version = rocmLlvmVersion;
+      src = llvmSrc;
+      monorepoSrc = llvmSrc;
+      doCheck = false;
+    }
+    // lib.optionalAttrs (lib.versions.major rocmLlvmVersion != "23") {
+      # The LLVM-22 base is an officialRelease; keep it official (ROCm LLVM is
+      # closer to official than git for that fork). The LLVM-23 git base keeps
+      # its gitRelease instead — common asserts exactly one of git/official.
+      officialRelease = { };
+    }
+  );
   refsToRemove = builtins.concatStringsSep " -t " [
     stdenvToBuildRocmLlvm
     stdenvToBuildRocmLlvm.cc
@@ -288,36 +315,42 @@ let
   inherit (llvmPackagesRocm) libcxx;
 in
 overrideLlvmPackagesRocm (s: {
-  libllvm = (s.prev.libllvm.override { }).overrideAttrs (old: {
-    patches = old.patches ++ [
-      ./perf-increase-namestring-size.patch
+  libllvm = (s.prev.libllvm.override { devExtraCmakeFlags = llvmDevExtraCmakeFlags; }).overrideAttrs (old: {
+    patches =
+      old.patches
+      ++ [
+        ./perf-increase-namestring-size.patch
+      ]
       # v64i8 shuffle lowering inf loop on VBMI targets, hangs whisper-cpp etc
       # https://github.com/NixOS/nixpkgs/issues/497745
-      (fetchpatch {
-        # https://github.com/llvm/llvm-project/pull/182832
-        name = "llvm-x86-v64i8-add-test-coverage.patch";
-        url = "https://github.com/llvm/llvm-project/commit/0e3a96d0ec01e3575674d72c4e23bf98affdca28.patch";
-        relative = "llvm";
-        hash = "sha256-qhRkB8Fjz/fNacuGv1OFkiTNOQ0/QQ9p4pLFudwrTzM=";
-      })
-      (fetchpatch {
-        # https://github.com/llvm/llvm-project/pull/182852
-        name = "llvm-x86-v64i8-prefer-vpermv3-on-vbmi.patch";
-        url = "https://github.com/llvm/llvm-project/commit/8f5880d3ae4e5dfc748985d90e5413671028aa3e.patch";
-        relative = "llvm";
-        hash = "sha256-4DU6gu/1+iQpzvVYBlTTUKtw77QSRyTja4hdel4D5Cw=";
-      })
-      (fetchpatch {
-        # https://github.com/llvm/llvm-project/pull/183109
-        name = "llvm-x86-v64i8-skip-repeated-mask-lane-permute-on-vbmi.patch";
-        url = "https://github.com/llvm/llvm-project/commit/1b9fea021840f17c41ea980300d0fc45e7285909.patch";
-        relative = "llvm";
-        hash = "sha256-9Akm78QQr8BIMrVWwDG3poWS1HuQ0hpIQWfke3oADgg=";
-      })
-      # TODO: consider reapplying "Don't include aliases in RegisterClassInfo::IgnoreCSRForAllocOrder"
-      # it was reverted as it's a pessimization for non-GPU archs, but this compiler
-      # is used mostly for amdgpu
-    ];
+      # Upstreamed in LLVM 23 (PRs below), so the therock-7.1x fork already has
+      # them; only the LLVM-22 stable fork needs the backports.
+      ++ lib.optionals (lib.versionOlder rocmLlvmVersion "23") [
+        (fetchpatch {
+          # https://github.com/llvm/llvm-project/pull/182832
+          name = "llvm-x86-v64i8-add-test-coverage.patch";
+          url = "https://github.com/llvm/llvm-project/commit/0e3a96d0ec01e3575674d72c4e23bf98affdca28.patch";
+          relative = "llvm";
+          hash = "sha256-qhRkB8Fjz/fNacuGv1OFkiTNOQ0/QQ9p4pLFudwrTzM=";
+        })
+        (fetchpatch {
+          # https://github.com/llvm/llvm-project/pull/182852
+          name = "llvm-x86-v64i8-prefer-vpermv3-on-vbmi.patch";
+          url = "https://github.com/llvm/llvm-project/commit/8f5880d3ae4e5dfc748985d90e5413671028aa3e.patch";
+          relative = "llvm";
+          hash = "sha256-4DU6gu/1+iQpzvVYBlTTUKtw77QSRyTja4hdel4D5Cw=";
+        })
+        (fetchpatch {
+          # https://github.com/llvm/llvm-project/pull/183109
+          name = "llvm-x86-v64i8-skip-repeated-mask-lane-permute-on-vbmi.patch";
+          url = "https://github.com/llvm/llvm-project/commit/1b9fea021840f17c41ea980300d0fc45e7285909.patch";
+          relative = "llvm";
+          hash = "sha256-9Akm78QQr8BIMrVWwDG3poWS1HuQ0hpIQWfke3oADgg=";
+        })
+      ];
+    # TODO: consider reapplying "Don't include aliases in RegisterClassInfo::IgnoreCSRForAllocOrder"
+    # it was reverted as it's a pessimization for non-GPU archs, but this compiler
+    # is used mostly for amdgpu
     dontStrip = profilableStdenv;
     hardeningDisable = [ "all" ];
     nativeBuildInputs = old.nativeBuildInputs ++ [ removeReferencesTo ];

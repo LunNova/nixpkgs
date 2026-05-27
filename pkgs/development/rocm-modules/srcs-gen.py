@@ -32,6 +32,16 @@ import sys
 # (e.g. `nix build .#rocmPackages_<stream>.<pkg>.src`).
 POSTFETCH_OMIT = {"hipblaslt"}
 
+def pad3(v):
+    """Pad a version to at least 3 components. ROCm preview tags omit the patch
+    (therock-7.13), but the real version is 7.13.0 (per TheRock version.json) and
+    some recipes' CMake breaks on a 2-component ROCM_VERSION (empty patch macro)."""
+    parts = v.split(".")
+    while len(parts) < 3:
+        parts.append("0")
+    return ".".join(parts)
+
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 # repo root: pkgs/development/rocm-modules -> ../../..
 REPO_ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
@@ -123,6 +133,25 @@ def sparse_path_empty(out_path, spec):
         return False
     full = os.path.join(out_path, rel)
     return not (os.path.isdir(full) and os.listdir(full))
+
+
+def detect_llvm_version(out_path):
+    """Read MAJOR.MINOR.PATCH from a realized llvm-project's LLVMVersion.cmake.
+    The ROCm fork's LLVM major differs per stream (stable=22, therock-7.13=23),
+    and it determines which nixpkgs llvm base/patch set must be used."""
+    f = os.path.join(out_path, "cmake", "Modules", "LLVMVersion.cmake")
+    if not os.path.isfile(f):
+        return None
+    txt = open(f).read()
+
+    def grab(field):
+        m = re.search(rf"set\(\s*LLVM_VERSION_{field}\s+(\d+)", txt)
+        return m.group(1) if m else None
+
+    maj = grab("MAJOR")
+    if maj is None:
+        return None
+    return f"{maj}.{grab('MINOR') or '0'}.{grab('PATCH') or '0'}"
 
 
 def try_relocate(key, rev):
@@ -251,9 +280,17 @@ def main():
             broken.append(key)
             sys.stderr.write(f"  broken {key}: no source at {new_rev} (no tag / project absent / not migrated)\n")
             continue
-        pin["version"] = args.version
-        if pin.get("rocmLlvmVersion"):
-            sys.stderr.write(f"  NOTE {key}: rocmLlvmVersion carried over ({pin['rocmLlvmVersion']}); verify against the stream's llvm-project fork\n")
+        pin["version"] = pad3(args.version)
+        if "rocmLlvmVersion" in pin:
+            # Detect the fork's actual LLVM version rather than carrying over the
+            # base stream's (the recipe selects the nixpkgs base by this major).
+            out = realize_src(pin, rev=pin.get("rev"), tag=pin.get("tag"), hashval=pin["hash"])
+            detected = detect_llvm_version(out)
+            if detected:
+                pin["rocmLlvmVersion"] = f"{detected}-rocm"
+                sys.stderr.write(f"  {key}: rocmLlvmVersion = {pin['rocmLlvmVersion']} (detected)\n")
+            else:
+                sys.stderr.write(f"  WARN {key}: could not detect LLVM version; keeping {pin['rocmLlvmVersion']}\n")
         result[key] = pin
 
     out = []
