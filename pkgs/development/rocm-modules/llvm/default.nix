@@ -6,6 +6,7 @@
   llvmPackages_22,
   llvmPackages_git,
   overrideCC,
+  stdenvAdapters,
   lndir,
   rocm-device-libs,
   fetchRocmSrc,
@@ -47,11 +48,12 @@ let
   # nixpkgs patch set matches the ROCm fork's LLVM major (therock-7.13 = LLVM 23).
   llvmPackages_base =
     if lib.versions.major rocmLlvmVersion == "23" then llvmPackages_git else llvmPackages_22;
-  # Extra cmake flags for every llvm we build (base bootstrap + ROCm fork).
-  # LLVM 23 uses CMake target_precompile_headers; the shared PCH is built at -O3
-  # but some targets compile TUs at -O2, so clang rejects the PCH
+  # The LLVM 23 git snapshot uses CMake target_precompile_headers; the shared PCH
+  # is built at -O3 but some targets compile TUs at -O2, so clang rejects the PCH
   # ("OptimizationLevel differs in precompiled file"). LLVM_ENABLE_PCH=OFF does
-  # not disable it, so use CMake's own kill switch.
+  # not disable it, so use CMake's own kill switch. This is compiler-agnostic, so
+  # it is safe on the gcc-built base too (the loop-vectorize workaround below is
+  # clang-only and is applied via the clang stdenv instead).
   llvmDevExtraCmakeFlags = lib.optionals (lib.versions.major rocmLlvmVersion == "23") [
     (lib.cmakeBool "CMAKE_DISABLE_PRECOMPILE_HEADERS" true)
   ];
@@ -72,15 +74,27 @@ let
       );
 
   stdenvToBuildRocmLlvm =
-    if withLibcxx then
-      overrideCC llvmPackagesNoBintools.libcxxStdenv llvmPackagesNoBintools.clangUseLLVM
+    let
+      baseStdenv =
+        if withLibcxx then
+          overrideCC llvmPackagesNoBintools.libcxxStdenv llvmPackagesNoBintools.clangUseLLVM
+        else
+          # oddly fuse-ld=lld fails without this override
+          overrideCC llvmPackagesNoBintools.stdenv (
+            llvmPackagesNoBintools.libstdcxxClang.override {
+              inherit (llvmPackages_base) bintools;
+            }
+          );
+    in
+    # The clang-built ROCm LLVM 23 fork crashes self-hosting: LoopVectorizePass
+    # SIGABRTs compiling lib/Target/AMDGPU/SIMachineScheduler.cpp at -O3. Disable
+    # loop vectorization for everything built with this (clang) stdenv. Scoped
+    # here rather than in cmake flags so the gcc-built base llvm — which rejects
+    # -fno-vectorize and doesn't hit the bug — is unaffected.
+    if lib.versions.major rocmLlvmVersion == "23" then
+      stdenvAdapters.withCFlags [ "-fno-vectorize" ] baseStdenv
     else
-      # oddly fuse-ld=lld fails without this override
-      overrideCC llvmPackagesNoBintools.stdenv (
-        llvmPackagesNoBintools.libstdcxxClang.override {
-          inherit (llvmPackages_base) bintools;
-        }
-      );
+      baseStdenv;
 
   gcc-include = runCommand "gcc-include" { } ''
     mkdir -p $out
@@ -406,24 +420,34 @@ overrideLlvmPackagesRocm (s: {
         passthru = old.passthru // {
           inherit gcc-prefix;
         };
-        patches = [
-          (fetchpatch {
-            # [clang][cmake] Add option to control scan-build-py installation (#172727)
-            name = "clang-scan-build-py-configurable.patch";
-            url = "https://github.com/llvm/llvm-project/commit/f5759eeb63a3a5ce7d555c13c3126cea84e0c7b1.patch";
-            relative = "clang";
-            hash = "sha256-73IDPGZWKX4vny3x5FJ3/NQw8XRad9UNwfYkvQdMB4s=";
-          })
-        ]
+        patches =
+          # Upstreamed in LLVM 23 (#172727); the therock-7.1x fork already has it.
+          lib.optionals (lib.versionOlder rocmLlvmVersion "23") [
+            (fetchpatch {
+              # [clang][cmake] Add option to control scan-build-py installation (#172727)
+              name = "clang-scan-build-py-configurable.patch";
+              url = "https://github.com/llvm/llvm-project/commit/f5759eeb63a3a5ce7d555c13c3126cea84e0c7b1.patch";
+              relative = "clang";
+              hash = "sha256-73IDPGZWKX4vny3x5FJ3/NQw8XRad9UNwfYkvQdMB4s=";
+            })
+          ]
         ++ old.patches
         ++ [
           # Never add FHS include paths
           ./clang-bodge-ignore-systemwide-incls.diff
+        ]
+        # Local build-time tweaks (logging, defaults, gcclib path shortening)
+        # targeted at LLVM 22's clang source. The LLVM 23 snapshot's clang has
+        # diverged enough that these don't apply cleanly, and none are
+        # correctness-critical, so skip them on 23+.
+        ++ lib.optionals (lib.versionOlder rocmLlvmVersion "23") [
           # Prevents builds timing out if a single compiler invocation is very slow but
           # per-arch jobs are completing by ensuring there's terminal output
           ./clang-log-jobs.diff
           ./opt-offload-compress-on-by-default.patch
           ./perf-shorten-gcclib-include-paths.patch
+        ]
+        ++ [
           (fetchpatch {
             # [ClangOffloadBundler]: Add GetBundleIDsInFile to OffloadBundler
             hash = "sha256-OsarDZXuJ5vAXTP4i0NBUeK/r6tQPumaqmMWkf29UtM=";
