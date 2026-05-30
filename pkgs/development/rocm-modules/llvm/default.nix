@@ -550,35 +550,76 @@ overrideLlvmPackagesRocm (s: {
   # Projects
   openmp =
     with s.final;
+    let
+      isLlvm23 = lib.versions.major rocmLlvmVersion == "23";
+    in
     (llvmPackagesRocm.openmp.override {
       llvm = llvm;
       clang-unwrapped = clang-unwrapped;
     }).overrideAttrs
-      (old: {
-        disallowedReferences = (old.disallowedReferences or [ ]) ++ disallowedRefsForToolchain;
-        nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
-          removeReferencesTo
-        ];
-        cmakeFlags =
-          old.cmakeFlags
-          ++ commonCmakeFlags
-          ++ [
-            "-DDEVICELIBS_ROOT=${rocm-device-libs.src}"
-            # OMPD support is broken in ROCm 6.3+ Haven't investigated why.
-            "-DLIBOMP_OMPD_SUPPORT:BOOL=FALSE"
-            "-DLIBOMP_OMPD_GDB_SUPPORT:BOOL=FALSE"
+      (
+        old:
+        {
+          disallowedReferences = (old.disallowedReferences or [ ]) ++ disallowedRefsForToolchain;
+          nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+            removeReferencesTo
           ];
-        buildInputs = old.buildInputs ++ [
-          clang-unwrapped
-          zstd
-          libxml2
-          libffi
-        ];
-        postFixup = ''
-          ${old.postFixup or ""}
-          ln -s $out/lib/libomp.so $dev/lib/libomp.so
-        '';
-      });
+          cmakeFlags =
+            old.cmakeFlags
+            ++ commonCmakeFlags
+            ++ [
+              "-DDEVICELIBS_ROOT=${rocm-device-libs.src}"
+              # OMPD support is broken in ROCm 6.3+ Haven't investigated why.
+              "-DLIBOMP_OMPD_SUPPORT:BOOL=FALSE"
+              "-DLIBOMP_OMPD_GDB_SUPPORT:BOOL=FALSE"
+            ]
+            ++ lib.optionals isLlvm23 [
+              # LLVM 23 removed the standalone openmp build mode (the only path
+              # nixpkgs' openmp build uses); switch to the new runtimes mode.
+              (lib.cmakeFeature "LLVM_ENABLE_RUNTIMES" "openmp")
+              # runtimes/CMakeLists.txt's LLVM_INCLUDE_TESTS branch pulls in
+              # ${LLVM_MAIN_SRC_DIR}/utils/llvm-lit, which isn't in our slim
+              # src; we don't run lit tests during the build anyway.
+              (lib.cmakeBool "LLVM_INCLUDE_TESTS" false)
+            ];
+          buildInputs = old.buildInputs ++ [
+            clang-unwrapped
+            zstd
+            libxml2
+            libffi
+          ];
+          postFixup = ''
+            ${old.postFixup or ""}
+            ln -s $out/lib/libomp.so $dev/lib/libomp.so
+          '';
+        }
+        // lib.optionalAttrs isLlvm23 {
+          # LLVM 23 removed the standalone openmp build (FATAL_ERROR in
+          # openmp/CMakeLists.txt — llvm/llvm-project#182022 reapplying #149878);
+          # use the runtimes mode (`cmake .../runtimes -DLLVM_ENABLE_RUNTIMES=openmp`)
+          # which is the same standalone build with the boilerplate moved into
+          # /runtimes/CMakeLists.txt. The minimum src for it is cmake/+openmp/
+          # +runtimes/+llvm/cmake/ (runtimes/CMakeLists.txt uses
+          # ../cmake/Modules and ../llvm/cmake/modules — GetHostTriple etc.).
+          src = runCommand "openmp-src-llvm23-${old.version}" { } ''
+            mkdir -p "$out/llvm"
+            cp -r --no-preserve=mode ${llvmSrc}/cmake       "$out/cmake"
+            cp -r --no-preserve=mode ${llvmSrc}/runtimes    "$out/runtimes"
+            cp -r --no-preserve=mode ${llvmSrc}/openmp      "$out/openmp"
+            cp -r --no-preserve=mode ${llvmSrc}/llvm/cmake  "$out/llvm/cmake"
+            # runtimes/CMakeLists.txt's build_gtest() unconditionally uses
+            # ''${LLVM_THIRD_PARTY_DIR}/unittest even when LLVM_INCLUDE_TESTS is off.
+            cp -r --no-preserve=mode ${llvmSrc}/third-party "$out/third-party"
+          '';
+          sourceRoot = "openmp-src-llvm23-${old.version}/runtimes";
+          # The build does in-tree installs back to ../openmp/runtime/exports/;
+          # ensure the unpacked source is writable end-to-end (store copies
+          # come in read-only).
+          postPatch = (old.postPatch or "") + ''
+            chmod -R u+w ..
+          '';
+        }
+      );
   # AMD has a separate MLIR impl which we package under rocmPackages.rocmlir
   # It would be an error to rely on the original mlir package from this scope
   mlir = null;
