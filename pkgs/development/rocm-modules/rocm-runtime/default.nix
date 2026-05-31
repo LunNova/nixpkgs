@@ -51,10 +51,16 @@ stdenv.mkDerivation (finalAttrs: {
     "-DCMAKE_INSTALL_INCLUDEDIR=include"
   ];
 
-  patches = [
-    # Vendored upstream PR for fix for segfault when queue allocation fails
-    # https://github.com/ROCm/rocm-systems/pull/2850
-    ./queue-failure.patch
+  patches =
+    # Upstream PR for segfault fix (rocm-systems#2850) plus two upstream
+    # cherry-picks — all already in the therock-7.1x preview fork; only the
+    # stable rocm-7.x stream still needs them.
+    lib.optionals (lib.versionOlder finalAttrs.version "7.10") [
+      # Vendored upstream PR for fix for segfault when queue allocation fails
+      # https://github.com/ROCm/rocm-systems/pull/2850
+      ./queue-failure.patch
+    ]
+  ++ lib.optionals (lib.versionOlder finalAttrs.version "7.10") [
     (fetchpatch {
       # [PATCH] rocr: Extend HIP ISA compatibility check
       hash = "sha256-8r2Lb5lBfFaZC3knCxfXGcnkzNv6JxOKyJn2rD5gus4=";
@@ -66,6 +72,8 @@ stdenv.mkDerivation (finalAttrs: {
       url = "https://github.com/ROCm/ROCR-Runtime/commit/41bfc66aef437a5b349f71105fa4b907cc7e17d5.patch";
       hash = "sha256-A7VhPR3eSsmjq2cTBSjBIz9i//WiNjoXm0EsRKtF+ns=";
     })
+  ]
+  ++ [
     # This causes a circular dependency, aqlprofile relies on hsa-runtime64
     # which is part of rocm-runtime
     # Worked around by having rocprofiler load aqlprofile directly

@@ -35,7 +35,14 @@ stdenv.mkDerivation (finalAttrs: {
     '';
 
   patches = [
-    ./cmake.patch
+    # cmake/Packages.cmake context drifted between the LLVM 22 and LLVM 23
+    # forks of ROCm/llvm-project; pick the patch matching the fork.
+    (
+      if lib.versionAtLeast finalAttrs.version "23" then
+        ./cmake-llvm23.patch
+      else
+        ./cmake.patch
+    )
   ];
 
   nativeBuildInputs = [
